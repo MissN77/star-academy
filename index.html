@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>⭐ Star Academy</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+<style>
+  body{margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a0533 0%,#2d0a5e 40%,#1a0533 100%);min-height:100vh;color:#fff;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes star-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes slide-in{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pop{0%{transform:scale(0.8);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  @keyframes sparkle{0%{transform:scale(0) rotate(0deg);opacity:1}100%{transform:scale(1.5) rotate(180deg);opacity:0}}
+  .card{background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;transition:transform 0.2s,box-shadow 0.2s;}
+  .card:hover{transform:translateY(-4px);}
+  .btn-primary{background:linear-gradient(135deg,#ec4899,#8b5cf6);border:none;color:#fff;padding:12px 28px;border-radius:50px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 4px 15px rgba(236,72,153,0.4);}
+  .btn-primary:hover{transform:scale(1.05);box-shadow:0 6px 25px rgba(236,72,153,0.6);}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:10px 18px;border-radius:50px;cursor:pointer;font-size:0.9rem;font-weight:600;}
+  .btn-ghost:hover{background:rgba(255,255,255,0.08);}
+  .opt-btn{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.2);color:#fff;padding:10px 16px;border-radius:14px;font-size:0.95rem;cursor:pointer;transition:all 0.15s;text-align:left;width:100%;font-family:inherit;}
+  .opt-btn:hover{background:rgba(255,255,255,0.15);border-color:rgba(236,72,153,0.6);transform:scale(1.02);}
+  .opt-btn.correct{background:rgba(16,185,129,0.3);border-color:#10b981;}
+  .opt-btn.wrong{background:rgba(239,68,68,0.3);border-color:#ef4444;}
+  .progress-bar{height:8px;border-radius:4px;background:rgba(255,255,255,0.1);overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#ec4899,#8b5cf6);border-radius:4px;transition:width 0.5s ease;}
+  .slide-in{animation:slide-in 0.4s ease forwards;}
+  .pop{animation:pop 0.35s ease forwards;}
+  .float{animation:float 3s ease-in-out infinite;}
+  input.type-in{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.25);color:#fff;padding:12px 16px;border-radius:14px;font-size:1.05rem;width:100%;font-family:inherit;outline:none;}
+  input.type-in:focus{border-color:#ec4899;}
+  .sparkle{position:fixed;font-size:1.5rem;pointer-events:none;animation:sparkle 0.8s ease-out forwards;z-index:9999;}
+  .cat-card{padding:18px;cursor:pointer;border-radius:18px;transition:all 0.2s;text-align:left;border:1px solid rgba(255,255,255,0.12);}
+  .cat-card:hover{transform:translateY(-3px);}
+  .pair-btn{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.2);color:#fff;padding:14px;border-radius:12px;cursor:pointer;font-weight:600;font-size:0.9rem;transition:all 0.15s;}
+  .pair-btn.selected{background:rgba(236,72,153,0.3);border-color:#ec4899;}
+  .pair-btn.matched{background:rgba(16,185,129,0.25);border-color:#10b981;cursor:default;opacity:0.6;}
+  .pair-btn.wrong-flash{background:rgba(239,68,68,0.3);border-color:#ef4444;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ── Audio ──────────────────────────────────────────────────────────────────
+function playCorrect() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523,659,784].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=f; o.type='sine';
+      g.gain.setValueAtTime(0.15,ctx.currentTime+i*0.12);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.12+0.25);
+      o.start(ctx.currentTime+i*0.12); o.stop(ctx.currentTime+i*0.12+0.25);
+    });
+  } catch(e){}
+}
+function playWrong() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=220; o.type='sawtooth';
+    g.gain.setValueAtTime(0.1,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.35);
+    o.start(); o.stop(ctx.currentTime+0.35);
+  } catch(e){}
+}
+function playFanfare() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523,659,784,1047].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=f; o.type='triangle';
+      g.gain.setValueAtTime(0.15,ctx.currentTime+i*0.1);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.1+0.5);
+      o.start(ctx.currentTime+i*0.1); o.stop(ctx.currentTime+i*0.1+0.5);
+    });
+  } catch(e){}
+}
+
+// ── Sparkles ───────────────────────────────────────────────────────────────
+function burstSparkles(x, y) {
+  const emojis = ['✨','⭐','💖','🌟','💫'];
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const angle = (Math.PI * 2 * i) / 8;
+    const dx = Math.cos(angle) * 60;
+    const dy = Math.sin(angle) * 60;
+    s.style.left = (x + dx) + 'px';
+    s.style.top = (y + dy) + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  }
+}
+
+// ── Storage ────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'star-academy-v2';
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveState(s) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STORIES (Reading comprehension)
+// ═══════════════════════════════════════════════════════════════════════════
+const STORIES = [
+  { id:'luna', title:'Luna and the Shadow Stone', icon:'🌙', grad:'linear-gradient(135deg,#f59e0b,#f97316)',
+    text:`Luna was no ordinary girl. By day she went to school and painted pictures of dragons. By night she hunted shadows.
+The shadows had been creeping out of the Forest of Whispers for three weeks, turning the village cats into grumpy statues. Luna's mum said it was just the cold weather. Luna knew better.
+On Tuesday evening, Luna packed her bag: one torch, three tangerines, a notebook, and her lucky K-pop badge with a tiny star on it. She marched into the forest.
+Deep inside, on a mossy rock, sat the Shadow Stone, a swirling dark gem the size of a grapefruit. Luna opened her notebook and read the counter-spell she had written in purple ink. As she spoke the words, the stone cracked. Light poured out. Every shadow curled up like smoke and vanished.
+On her way home, Luna ate all three tangerines. She felt that was fair.`,
+    qs:[
+      {q:'What did Luna do at NIGHT?',opts:['Painted dragons','Went to school','Hunted shadows','Slept in the forest'],ans:2,why:'The story says "by night she hunted shadows"! 🌙'},
+      {q:'What had the shadows done to the village cats?',opts:['Made them friendly','Turned them into grumpy statues','Made them run away','Taught them to sing'],ans:1,why:'"turning the village cats into grumpy statues"! 😾'},
+      {q:'How many tangerines did Luna pack?',opts:['One','Two','Three','Four'],ans:2,why:'She packed "three tangerines" in her bag! 🍊'},
+      {q:"What did Luna use to BREAK the Shadow Stone's power?",opts:['Her torch','A counter-spell from her notebook','Her K-pop badge','A tangerine'],ans:1,why:'She read the counter-spell she had written in purple ink! ✨'},
+    ]},
+  { id:'starfall', title:'The Missing Microphone', icon:'🎤', grad:'linear-gradient(135deg,#f43f5e,#ec4899)',
+    text:`Sora was the lead singer of a five-member group called Starfall. Their biggest concert was tomorrow night, and something dreadful had happened. Her favourite microphone was gone.
+"We have to be methodical about this," said her bandmate Jay, pulling out a notebook. "Let us retrace every step."
+Sora thought hard. After rehearsal she had placed the microphone on the prop table near the velvet curtain. Then she had gone to eat noodles. Then she had returned, and it had vanished.
+The group searched the entire venue. They checked the storage room, the costume rail, and even the snack fridge (Jay had suggested that last one). Nothing.
+It was their youngest member, Bora, who solved the mystery. She noticed a sparkling trail of glitter leading behind the speaker stack. There, curled up and fast asleep on the microphone, was a fluffy ginger cat. It had apparently decided the microphone was the finest pillow in the building.
+Sora laughed so hard her sides hurt. She borrowed a spare microphone for the concert. The cat was given a name, Starfall, and became the group's unofficial mascot.`,
+    qs:[
+      {q:"What is the name of Sora's group?",opts:['Moonrise','Starfall','Glitterband','Neon Five'],ans:1,why:'The group is called Starfall! 🌟'},
+      {q:'Where had Sora left her microphone after rehearsal?',opts:['In the snack fridge','On the costume rail','On the prop table near the velvet curtain','In the storage room'],ans:2,why:'She placed it on the prop table near the velvet curtain! 🎤'},
+      {q:'Who discovered where the microphone actually was?',opts:['Sora','Jay','The venue manager','Bora'],ans:3,why:'Bora spotted the glitter trail and found it! ✨'},
+      {q:'What was sleeping on the microphone?',opts:['A rabbit','A ginger cat','A small dog','A hamster'],ans:1,why:'A fluffy ginger cat had chosen the microphone as its pillow! 🐱'},
+      {q:'What clue led Bora to the microphone?',opts:['A loud noise','A sparkling trail of glitter','A paw print','A smell of noodles'],ans:1,why:'She followed the sparkling trail of glitter behind the speaker stack! 🌟'},
+    ]},
+  { id:'tower', title:'The Wobbling Tower', icon:'🏗️', grad:'linear-gradient(135deg,#10b981,#06b6d4)',
+    text:`Mia had one ambition for the school craft fair: to build the tallest cardboard tower in the history of Maple Street Primary. She had spent three evenings cutting, folding, and stacking cardboard tubes.
+By Friday morning, the tower stood at one metre and twelve centimetres. It was impressive. It was also, unfortunately, wobbling.
+"Reinforce the base," suggested her older brother Theo, who was studying engineering at college and therefore felt entitled to give advice about everything.
+Mia added extra card around the bottom and secured it with a generous loop of tape. The wobble reduced to a gentle sway.
+At the fair, the judges walked slowly around every entry. There was a papier-mâché volcano, a woven basket, and a rather lopsided robot. Mia held her breath.
+Then her tower swayed, just slightly, and the judge smiled. "Remarkable," she said. "It moves with the air like a real skyscraper."
+Mia had not planned that. She decided not to mention it.
+She won first prize: a shiny silver rosette and a voucher for the craft shop. The tower stood in the school corridor for the rest of term, swaying serenely, as if it had always meant to.`,
+    qs:[
+      {q:'What did Mia want to build for the craft fair?',opts:['A papier-mâché volcano','The tallest cardboard tower','A woven basket','A robot'],ans:1,why:'Her ambition was to build the tallest cardboard tower! 🏗️'},
+      {q:"How tall was Mia's tower by Friday morning?",opts:['One metre exactly','One metre and twelve centimetres','Ninety centimetres','Two metres'],ans:1,why:'One metre and twelve centimetres! 📏'},
+      {q:'What did Mia do to stop the tower wobbling so much?',opts:['She made it shorter','She added extra card and tape around the base','She used glue instead of tape','She asked Theo to hold it'],ans:1,why:'She reinforced the base with extra card and tape! 🛠️'},
+      {q:'What did the judge say about the tower swaying?',opts:['It would fall over','That it was dangerous','That it moved like a real skyscraper','That it needed more tape'],ans:2,why:'The judge said it moved like a real skyscraper! 🌆'},
+      {q:"What was Mia's first prize?",opts:['A gold trophy','A silver rosette and a craft shop voucher','A certificate','A book about engineering'],ans:1,why:'A shiny silver rosette and a craft shop voucher! 🥇'},
+    ]},
+  { id:'giggle', title:'The Giggle Room', icon:'🎪', grad:'linear-gradient(135deg,#6366f1,#7c3aed)',
+    text:`Pepper had explored most of Dandy's World, but she had never opened the door marked GIGGLE ROOM. Today she pushed it open.
+Inside, everything was upside down. The chairs hung from the ceiling. The lamps grew out of the floor. A painting of a serious-looking cat was laughing.
+"Welcome!" said a voice. It belonged to a small figure made entirely of bouncy balls, who introduced himself as Boinks. "The rule here is simple: whatever you say comes out backwards."
+Pepper tried to say "hello" and instead said "olleh." She tried to say "this is strange" and instead said "egnarts si siht."
+Boinks found this uproarious. He bounced off three walls and a hanging chair.
+"How do I leave?" Pepper asked, or tried to. What came out was "evael I od woh."
+Boinks pointed to a trapdoor in the ceiling. Pepper climbed the upside-down ladder, pushed through the trapdoor, and landed back in the normal corridor with a soft thump.
+She looked back at the door. It now read MOOR ELGGIG.
+"Of course it does," she said, and walked away.`,
+    qs:[
+      {q:'What was unusual about the furniture in the Giggle Room?',opts:['It was all tiny','It was all red','Chairs hung from the ceiling and lamps grew from the floor','It kept moving around'],ans:2,why:'Everything was upside down! 🙃'},
+      {q:'What was Boinks made of?',opts:['Glitter and string','Bouncy balls','Paper and tape','Coloured blocks'],ans:1,why:'He was made entirely of bouncy balls! 🟡'},
+      {q:'What was the rule of the Giggle Room?',opts:['You must always whisper','Whatever you say comes out backwards','You must not laugh','You must hop on one foot'],ans:1,why:'Whatever you say comes out backwards! 🔄'},
+      {q:'How did Pepper leave the Giggle Room?',opts:['Through the main door','By saying a magic word','Through a trapdoor in the ceiling','By climbing out of a window'],ans:2,why:'Through a trapdoor in the ceiling! 🪜'},
+      {q:'What did the door say when Pepper looked back?',opts:['GIGGLE ROOM','GOODBYE','MOOR ELGGIG','COME BACK SOON'],ans:2,why:'GIGGLE ROOM backwards is MOOR ELGGIG! 😄'},
+    ]},
+  { id:'seahorse', title:'The Lost Seahorse', icon:'🐴', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)',
+    text:`Coral the seahorse had drifted far from her family. A strong current had pulled her away from the reef while she was chasing a tiny shrimp. Now she was somewhere cold and dark.
+"Do not panic," she told herself firmly. Her mother had always said that a calm seahorse is a clever seahorse.
+She followed a stream of silver bubbles upwards. They led her to a kind old octopus called Mr Ink, who was reading a book on a flat grey rock.
+"Lost, little one?" he asked, peering over his spectacles.
+Coral nodded. "I need to find the Rainbow Reef."
+Mr Ink smiled and pointed with one long arm. "Swim towards the pink coral, then left at the shipwreck, then straight until you see the dolphins dancing. Do not take any shortcuts through the kelp forest, it is very tangly today."
+Coral thanked him and swam off. She followed his directions exactly, and by sunset she was curled up safe in the Rainbow Reef, telling her brothers and sisters all about the octopus who read books.`,
+    qs:[
+      {q:'Why had Coral drifted away from her family?',opts:['She was sleeping','A strong current pulled her while she chased a shrimp','She was looking for seaweed','She was playing hide and seek'],ans:1,why:'A current pulled her away while she chased a shrimp! 🦐'},
+      {q:'What had her mother told her?',opts:['Always swim fast','A calm seahorse is a clever seahorse','Never talk to octopuses','Stay near the surface'],ans:1,why:'A calm seahorse is a clever seahorse! 🧠'},
+      {q:"What was Mr Ink doing when Coral met him?",opts:['Sleeping','Reading a book','Catching fish','Swimming fast'],ans:1,why:'He was reading a book on a flat grey rock! 📖'},
+      {q:'Which direction did Mr Ink say to go first?',opts:['Towards the pink coral','Left at the shipwreck','Through the kelp forest','Towards the dolphins'],ans:0,why:'Swim towards the pink coral first! 🪸'},
+      {q:'Where did Mr Ink warn her NOT to go?',opts:['Near the dolphins','Past the shipwreck','Through the kelp forest','Near the pink coral'],ans:2,why:'The kelp forest was very tangly that day! 🌿'},
+    ]},
+  { id:'pancake', title:'Pancake Panic', icon:'🥞', grad:'linear-gradient(135deg,#f59e0b,#ef4444)',
+    text:`It was Saturday morning, and Ella had decided she would make pancakes all by herself. Her grandma was still upstairs.
+Ella measured the flour carefully into a bowl. She cracked in two eggs (only one shell fell in, which she fished out with a spoon). She poured in the milk and stirred until the lumps disappeared.
+Then she heated the pan, just as her grandma had shown her, and spooned in the first dollop of batter. She waited, then flipped the pancake with a tremendous swish of the spatula.
+The pancake flew straight up, stuck to the ceiling, hovered for a dramatic moment, and flopped back down. It landed neatly in the pan.
+Grandma appeared in the doorway at exactly that moment. She looked at the pan, then at the ceiling (which had a small round greasy mark), then at Ella.
+"Next time, a smaller flip," she said, and started making tea.
+They ate ten pancakes between them with lemon and sugar. Ella told the story at school for a whole week.`,
+    qs:[
+      {q:'What day was it in the story?',opts:['Sunday','Monday','Friday','Saturday'],ans:3,why:'It was Saturday morning! 🌅'},
+      {q:'How many eggs did Ella crack?',opts:['One','Two','Three','Four'],ans:1,why:'She cracked in two eggs! 🥚'},
+      {q:'What happened when she flipped the pancake?',opts:['It burnt','It stuck to the ceiling','It tore in half','It slid onto the floor'],ans:1,why:'It stuck to the ceiling, then flopped back into the pan! 🥞'},
+      {q:"What did grandma say?",opts:['Start again','Next time, a smaller flip','Call mum','Throw it away'],ans:1,why:'"Next time, a smaller flip!" 😄'},
+      {q:'How many pancakes did they eat?',opts:['Five','Eight','Ten','Twelve'],ans:2,why:'They ate ten pancakes between them! 🍋'},
+    ]},
+  { id:'robot', title:'The Robot Who Wanted to Dance', icon:'🤖', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)',
+    text:`Bolt was a kitchen robot. His job was to stir soup, chop carrots, and wipe down the counters. He was excellent at all three.
+But every evening, when the kitchen was quiet, Bolt watched the family's television through the doorway. He saw people on a dance show, twirling and leaping, and something inside his circuits hummed.
+One Tuesday, Bolt tried a little shuffle while stirring the soup. His left wheel squeaked. He tried a spin while chopping carrots. He knocked over the salt.
+The family's youngest child, Noor, noticed. "You want to dance, don't you?" she said.
+Bolt made a small beeping sound that meant yes.
+Noor stood on a chair and held his metal hand. She counted to three. Together they twirled across the kitchen tiles, one little girl and one squeaky robot, while the soup simmered politely on the stove.
+Noor oiled his wheels after. The next Tuesday, they danced again.`,
+    qs:[
+      {q:"What was Bolt's job?",opts:['Vacuuming','Stirring soup, chopping carrots, wiping counters','Walking the dog','Washing clothes'],ans:1,why:'Kitchen jobs: stir, chop, wipe! 🍲'},
+      {q:"What did Bolt watch every evening?",opts:['The garden','A dance show on TV','The stars','The cat'],ans:1,why:'He watched a dance show on TV! 📺'},
+      {q:'What happened when he tried to spin?',opts:['He fell over','He broke','He knocked over the salt','He stopped working'],ans:2,why:'He knocked over the salt! 🧂'},
+      {q:"Who was Noor?",opts:["Bolt's designer","The family's youngest child","A neighbour","Bolt's sister"],ans:1,why:"Noor was the family's youngest child! 👧"},
+      {q:'What did Noor do after they danced?',opts:['Gave him a cake','Oiled his wheels','Painted him','Turned him off'],ans:1,why:'She oiled his wheels! 🛢️'},
+    ]},
+  { id:'dragon', title:'The Polite Dragon', icon:'🐉', grad:'linear-gradient(135deg,#ef4444,#f59e0b)',
+    text:`In the small kingdom of Thistledown, there lived a dragon called Periwinkle. He was not like other dragons. He did not steal gold. He did not eat knights. He said please and thank you.
+The villagers were confused. They had written a long list of dragon-fighting plans. They had built a special dragon trap out of old barrels. None of it seemed necessary.
+One morning, Periwinkle flew gently down to the village square. "Excuse me," he said. "Do you have any books about gardening?"
+The villagers blinked. The librarian, whose name was Martha, recovered first.
+"We have three," she said. "Would you like to borrow them?"
+Periwinkle nodded politely. He returned them exactly one week later, each one unburnt and in perfect condition. He borrowed three more. Then three more.
+By the end of the year, Periwinkle had the finest rose garden for miles. The villagers held a small tea party in it, and nobody mentioned the barrel trap ever again.`,
+    qs:[
+      {q:"What was the dragon called?",opts:['Thistle','Periwinkle','Martha','Basil'],ans:1,why:'The dragon was called Periwinkle! 🐲'},
+      {q:'What did the villagers build?',opts:['A dragon trap out of old barrels','A tall wall','A cage','A giant net'],ans:0,why:'A dragon trap out of old barrels! 🛢️'},
+      {q:'What did Periwinkle ask for?',opts:['Gold','Knights','Books about gardening','Food'],ans:2,why:'Books about gardening! 🌹'},
+      {q:"Who was Martha?",opts:['The queen','The librarian','The gardener','The blacksmith'],ans:1,why:'Martha was the librarian! 📚'},
+      {q:'What did Periwinkle have by the end of the year?',opts:['A pile of gold','The finest rose garden','A new dragon friend','A castle'],ans:1,why:'The finest rose garden for miles! 🌺'},
+    ]},
+  { id:'moon', title:'The Moon-Bounce Party', icon:'🌙', grad:'linear-gradient(135deg,#6366f1,#06b6d4)',
+    text:`Astra had been invited to her first party on the Moon. Her cousin Vega lived in one of the space stations, and she had organised a bouncing party in the low-gravity hall.
+Astra packed carefully: her silver helmet, her special bouncy boots, a present wrapped in stars, and a small bag of space marshmallows.
+When she arrived, the hall was full of children floating three metres into the air with every small jump. Music played from speakers on the ceiling. A banner said HAPPY 8TH, VEGA!
+Astra took a breath, ran, and jumped. She flew higher than she expected and accidentally somersaulted twice before landing, giggling, on a soft blue cushion.
+"You are a natural!" said Vega, who was eating marshmallows upside down.
+They bounced for two whole hours. They played a game where you had to catch a floating balloon while spinning. Astra won twice.
+On the way home in the shuttle, Astra fell asleep holding her empty marshmallow bag.`,
+    qs:[
+      {q:"Whose party was it?",opts:["Astra's","Vega's","Her mum's","A teacher's"],ans:1,why:"It was Vega's 8th birthday party! 🎂"},
+      {q:'What did Astra pack?',opts:['A silver helmet, bouncy boots, a present, marshmallows','Just a present','Food and drinks','A telescope'],ans:0,why:'Helmet, boots, present, marshmallows! 🎒'},
+      {q:'How high did the children float?',opts:['One metre','Two metres','Three metres','Ten metres'],ans:2,why:'Three metres into the air! 🚀'},
+      {q:'What happened when Astra jumped?',opts:['She fell down','She somersaulted twice','She hit the ceiling','She floated away'],ans:1,why:'She accidentally somersaulted twice! 🤸'},
+      {q:'How many times did Astra win the balloon game?',opts:['Once','Twice','Three times','Never'],ans:1,why:'She won twice! 🎈'},
+    ]},
+  { id:'library', title:'The Whispering Library', icon:'📚', grad:'linear-gradient(135deg,#10b981,#6366f1)',
+    text:`The library on Primrose Lane had a secret. Every book there could whisper its own story to you, but only if you were very quiet.
+Hassan discovered this by accident on a rainy Wednesday. He had gone in to escape the rain, and he was sitting in a beanbag with a book about pirates on his lap.
+"Turn the page, lad," said a tiny voice.
+Hassan looked around. Nobody. He looked at the book. The book looked back.
+"Go on," it whispered. "The next bit is my favourite."
+Hassan turned the page. The book chuckled softly and began to tell him about a pirate who was scared of crabs.
+Hassan read for an hour without noticing the time. When he stood up to leave, the book said "Come back tomorrow, there is a much better chapter."
+He did. He came back every Wednesday for the rest of the term. He always chose a different book. Each one whispered. Each one was kind.
+He never told anyone. Some secrets are too nice to share.`,
+    qs:[
+      {q:"What street was the library on?",opts:['Primrose Lane','Oak Road','High Street','Rose Avenue'],ans:0,why:'Primrose Lane! 🌸'},
+      {q:'What was the library\'s secret?',opts:['It had a ghost','Books could whisper their stories','It was huge inside','It was upside down'],ans:1,why:'Every book could whisper its story! 📖'},
+      {q:"What was Hassan's book about?",opts:['Dragons','Pirates','Space','Princesses'],ans:1,why:'A book about pirates! 🏴‍☠️'},
+      {q:'What was the pirate in the book afraid of?',opts:['Sharks','The sea','Crabs','Storms'],ans:2,why:'A pirate who was scared of crabs! 🦀'},
+      {q:'When did Hassan come back?',opts:['Never','The next day','Every Wednesday','Only once a year'],ans:2,why:'Every Wednesday for the rest of term! 📅'},
+    ]},
+  { id:'bakery', title:'The Midnight Bakery', icon:'🥐', grad:'linear-gradient(135deg,#f59e0b,#ec4899)',
+    text:`Mr Fielding ran the only bakery in Hilltop. Every night, at exactly midnight, he began his baking. By five in the morning, fresh loaves were cooling on the racks.
+But Mr Fielding was not alone in the bakery. He had two helpers: a very small, very serious mouse called Crumb, who did the weighing, and a chubby moth called Dust, who checked the oven temperatures by fluttering near the glass.
+They were not official employees. Mr Fielding had never paid them. In return, they took one crust each at the end of every shift.
+One night, the oven broke. Mr Fielding stared at it helplessly. Crumb climbed into the dial, wiggled something, and climbed out. Dust fluttered at the ignition. The oven roared back to life.
+"Thank you," said Mr Fielding.
+Crumb nodded. Dust landed briefly on his glasses. They carried on working until five. Nobody in Hilltop ever found out who really ran the bakery.`,
+    qs:[
+      {q:'What time did Mr Fielding start baking?',opts:['Ten pm','Midnight','Two am','Four am'],ans:1,why:'Exactly midnight! 🕛'},
+      {q:"Who was Crumb?",opts:['A mouse','A moth','A cat','A child'],ans:0,why:'A very small, very serious mouse! 🐭'},
+      {q:"What did Dust check?",opts:['The weighing','The oven temperatures','The doors','The flour'],ans:1,why:'Oven temperatures by fluttering near the glass! 🦋'},
+      {q:'What did Crumb and Dust take as payment?',opts:['Money','A cake','One crust each','Nothing'],ans:2,why:'One crust each at the end of every shift! 🍞'},
+      {q:'What broke one night?',opts:['The door','The oven','The scales','The window'],ans:1,why:'The oven broke! 🔧'},
+    ]},
+  { id:'football', title:'The Penalty Kick', icon:'⚽', grad:'linear-gradient(135deg,#10b981,#f59e0b)',
+    text:`It was the school cup final. The score was one-one. Ninety seconds of extra time remained, and Sami's team had just been awarded a penalty.
+Mr Collins, the coach, pointed at Sami. Sami went pale. He had never taken a penalty in a match before, not a real one.
+He placed the ball on the spot. His legs felt like spaghetti.
+The goalkeeper, a tall boy called Ravi, jumped up and down and pretended to be a cat, which was meant to be distracting. It only made Sami laugh, which calmed him down completely.
+Sami breathed out slowly, just like his dad had taught him, and struck the ball firmly and low into the bottom corner. Ravi dived the wrong way. The ball hit the net.
+The whole playground erupted. Sami's teammates lifted him up. Mr Collins was shouting something nobody could hear. Ravi, to his credit, clapped.
+Two-one. Cup won. Sami could not stop smiling for three days.`,
+    qs:[
+      {q:'What was the score before the penalty?',opts:['Nil-nil','One-one','Two-one','Three-nil'],ans:1,why:'The score was one-one! ⚽'},
+      {q:"How did Sami feel?",opts:['Confident','His legs felt like spaghetti','Bored','Angry'],ans:1,why:'His legs felt like spaghetti! 🍝'},
+      {q:"What did Ravi the goalkeeper do?",opts:['Shouted','Pretended to be a cat','Cried','Sat down'],ans:1,why:'He pretended to be a cat! 🐱'},
+      {q:'Where did Sami kick the ball?',opts:['High in the middle','The bottom corner','Over the bar','Left post'],ans:1,why:'Low into the bottom corner! 🥅'},
+      {q:'What did Ravi do after the goal?',opts:['Cried','Clapped','Ran away','Shouted'],ans:1,why:'To his credit, Ravi clapped! 👏'},
+    ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MATHS
+// ═══════════════════════════════════════════════════════════════════════════
+const MATHS_TRAIN = [
+  { q:'7 + 8 = ?', opts:['13','14','15','16'], ans:2, why:'7 + 8 = 15! 🔢' },
+  { q:'20 − 6 = ?', opts:['12','13','14','16'], ans:2, why:'20 − 6 = 14! ⬇️' },
+  { q:'3 × 4 = ?', opts:['7','10','12','16'], ans:2, why:'3 × 4 = 12! ✖️' },
+  { q:'Half of 18 is…?', opts:['7','8','9','10'], ans:2, why:'18 ÷ 2 = 9! 🍰' },
+  { q:'5 + 5 + 5 = ?', opts:['10','15','20','25'], ans:1, why:'Three fives make 15! ✋' },
+  { q:'What is 2 × 6?', opts:['8','10','12','14'], ans:2, why:'2 × 6 = 12! 🎯' },
+  { q:'9 − 4 = ?', opts:['3','4','5','6'], ans:2, why:'9 − 4 = 5! ➖' },
+  { q:'Double 7 is…?', opts:['12','13','14','15'], ans:2, why:'7 + 7 = 14! ✌️' },
+  { q:'Count in 2s: 2, 4, 6, 8, __', opts:['9','10','11','12'], ans:1, why:'8 + 2 = 10! 🔢' },
+  { q:'What is 100 − 10?', opts:['80','90','100','110'], ans:1, why:'100 − 10 = 90! 💯' },
+];
+const MATHS_PRACTISE = [
+  { q:'24 + 17 = ?', opts:['39','40','41','42'], ans:2, why:'24 + 17 = 41! 🧮' },
+  { q:'52 − 19 = ?', opts:['31','32','33','34'], ans:2, why:'52 − 19 = 33! ⬇️' },
+  { q:'6 × 7 = ?', opts:['40','41','42','43'], ans:2, why:'6 × 7 = 42! ✖️' },
+  { q:'36 ÷ 4 = ?', opts:['7','8','9','10'], ans:2, why:'36 ÷ 4 = 9! 🍬' },
+  { q:'What is 1/4 of 20?', opts:['4','5','6','10'], ans:1, why:'20 ÷ 4 = 5! 🥧' },
+  { q:'45 + 28 = ?', opts:['63','73','83','93'], ans:1, why:'45 + 28 = 73! 🧮' },
+  { q:'9 × 5 = ?', opts:['40','45','50','55'], ans:1, why:'9 × 5 = 45! ✖️' },
+  { q:'100 − 37 = ?', opts:['53','63','73','77'], ans:1, why:'100 − 37 = 63! ⬇️' },
+  { q:'8 × 8 = ?', opts:['56','64','72','80'], ans:1, why:'8 × 8 = 64! ✖️' },
+  { q:'Half of 30 is…?', opts:['10','15','20','25'], ans:1, why:'30 ÷ 2 = 15! ➗' },
+];
+const MATHS_TEST = [
+  { q:'135 + 48 = ?', opts:['181','182','183','184'], ans:2, why:'135 + 48 = 183! 🧮' },
+  { q:'What is 25% of 80?', opts:['15','20','25','30'], ans:1, why:'80 ÷ 4 = 20! 🥧' },
+  { q:'A train travels 60 km/h for 2 hours. How far?', opts:['100 km','110 km','120 km','130 km'], ans:2, why:'60 × 2 = 120 km! 🚆' },
+  { q:'Area of rectangle 7 cm × 5 cm?', opts:['24 cm²','30 cm²','35 cm²','40 cm²'], ans:2, why:'7 × 5 = 35 cm²! 📐' },
+  { q:'What is 3/4 of 16?', opts:['8','10','12','14'], ans:2, why:'1/4 of 16 = 4, so 3/4 = 12! 🥧' },
+  { q:'256 − 89 = ?', opts:['157','167','177','187'], ans:1, why:'256 − 89 = 167! ⬇️' },
+  { q:'What is 7 × 12?', opts:['74','84','94','104'], ans:1, why:'7 × 12 = 84! ✖️' },
+  { q:'Perimeter of a square with side 9 cm?', opts:['27 cm','36 cm','45 cm','81 cm'], ans:1, why:'4 × 9 = 36 cm! 📏' },
+  { q:'If a book costs £4.50 and you buy 3, total?', opts:['£12.50','£13.00','£13.50','£14.00'], ans:2, why:'4.50 × 3 = £13.50! 💷' },
+  { q:'How many minutes in 3 hours?', opts:['150','170','180','200'], ans:2, why:'60 × 3 = 180! ⏰' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 11+ PREP
+// ═══════════════════════════════════════════════════════════════════════════
+const PREP_QUESTIONS = [
+  { q:'Opposite of "ancient"?', opts:['Old','Modern','Antique','Crumbling'], ans:1, why:'Modern is the opposite of ancient! 🏙️', cat:'Verbal Reasoning' },
+  { q:'Odd one out: robin, sparrow, salmon, eagle?', opts:['robin','sparrow','salmon','eagle'], ans:2, why:'Salmon is a fish! 🐟', cat:'Verbal Reasoning' },
+  { q:'SWIFT is to SPEED as GIANT is to…?', opts:['Small','Tall','Size','Weight'], ans:2, why:'Giant means great size! 🔤', cat:'Verbal Reasoning' },
+  { q:'Shape with 5 sides?', opts:['Hexagon','Pentagon','Square','Octagon'], ans:1, why:'Penta means five! ⬠', cat:'Non-verbal Reasoning' },
+  { q:'If ◆◆□ repeats, 8th shape?', opts:['◆','□','△','○'], ans:1, why:'Position 8 is □! 🔷', cat:'Non-verbal Reasoning' },
+  { q:'Largest: 3/4, 1/2, 2/3, 5/8?', opts:['1/2','2/3','3/4','5/8'], ans:2, why:'3/4 = 0.75! 🥧', cat:'Numerical Reasoning' },
+  { q:'Mirror reflects "b". What letter?', opts:['b','d','p','q'], ans:1, why:'"b" mirrors to "d"! 🪞', cat:'Non-verbal Reasoning' },
+  { q:'Word to follow MOON, SUN, FLASH? __light', opts:['lamp','beam','light','glow'], ans:2, why:'Moonlight, sunlight, flashlight! 💡', cat:'Verbal Reasoning' },
+  { q:'What number comes next? 3, 6, 12, 24, __?', opts:['36','40','48','50'], ans:2, why:'Each doubles: 24 × 2 = 48! 🔢', cat:'Numerical Reasoning' },
+  { q:'Odd word out: apple, banana, carrot, pear?', opts:['apple','banana','carrot','pear'], ans:2, why:'Carrot is a vegetable! 🥕', cat:'Verbal Reasoning' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCIENCE (teach → quiz)
+// ═══════════════════════════════════════════════════════════════════════════
+const SCIENCE_LESSONS = [
+  { id:'animals', title:'Animal Groups', icon:'🐾', grad:'linear-gradient(135deg,#10b981,#06b6d4)',
+    teach:`Animals are sorted into big groups called classes.
+**Mammals** have fur or hair, are warm-blooded, and feed their babies milk. Humans, dogs, whales and bats are all mammals.
+**Birds** have feathers, wings, and lay eggs. Almost all birds can fly (penguins cannot).
+**Fish** live in water, have scales and gills, and lay eggs in water.
+**Reptiles** have dry scaly skin and lay eggs on land. Snakes, lizards and crocodiles are reptiles.
+**Amphibians** start life in water and move to land. Frogs and newts are amphibians.
+**Insects** have six legs and three body parts. Bees and ants are insects.`,
+    qs:[
+      {q:'Which animals feed their babies milk?',opts:['Birds','Mammals','Fish','Reptiles'],ans:1,why:'Only mammals feed babies with milk! 🥛'},
+      {q:'How many legs does an insect have?',opts:['Four','Six','Eight','Ten'],ans:1,why:'Insects have six legs! 🐞'},
+      {q:'Which bird CANNOT fly?',opts:['Robin','Eagle','Penguin','Sparrow'],ans:2,why:'Penguins cannot fly, they swim! 🐧'},
+      {q:'Where do fish breathe from?',opts:['Lungs','Gills','Nose','Mouth'],ans:1,why:'Fish breathe through gills! 🐟'},
+      {q:'A frog is a…?',opts:['Reptile','Mammal','Amphibian','Fish'],ans:2,why:'Frogs are amphibians! 🐸'},
+    ]},
+  { id:'plants', title:'Parts of a Plant', icon:'🌱', grad:'linear-gradient(135deg,#10b981,#84cc16)',
+    teach:`Plants have different parts, and each part has a job.
+**Roots** grow under the ground. They hold the plant steady and suck up water and food from the soil.
+**Stem** is like the plant's body. It holds the plant upright and carries water up to the leaves.
+**Leaves** make food for the plant using sunlight. This is called photosynthesis.
+**Flowers** make seeds so new plants can grow.
+**Seeds** can grow into new plants when they land on soil.
+Plants need water, sunlight, air and soil to grow.`,
+    qs:[
+      {q:'Which part of the plant sucks up water?',opts:['Leaves','Flowers','Roots','Stem'],ans:2,why:'Roots suck up water from the soil! 🌿'},
+      {q:'Where do plants make their food?',opts:['Roots','Leaves','Flowers','Seeds'],ans:1,why:'Leaves make food using sunlight! ☀️'},
+      {q:'What grows into a new plant?',opts:['Leaf','Stem','Seed','Root'],ans:2,why:'Seeds grow into new plants! 🌱'},
+      {q:'Plants need all of these EXCEPT…?',opts:['Water','Sunlight','Chocolate','Air'],ans:2,why:'Chocolate is not on the list! 🍫'},
+      {q:'What is the food-making process called?',opts:['Photosynthesis','Digestion','Breathing','Growing'],ans:0,why:'Photosynthesis! ☀️'},
+    ]},
+  { id:'materials', title:'Materials', icon:'🧱', grad:'linear-gradient(135deg,#f59e0b,#ef4444)',
+    teach:`Everything around us is made of materials.
+**Wood** comes from trees. It is strong and can be shaped.
+**Metal** is hard, shiny and strong. Cars and spoons are made of metal.
+**Plastic** is light and can bend. Bottles and toys are often plastic.
+**Glass** is see-through but can break easily. Windows are made of glass.
+**Fabric** is soft and bendy. Clothes are made of fabric.
+**Rock** is hard and heavy. Mountains are made of rock.
+Some things are **waterproof** (water stays out) and some are **absorbent** (they soak up water like a sponge).`,
+    qs:[
+      {q:'Which material comes from trees?',opts:['Metal','Glass','Wood','Plastic'],ans:2,why:'Wood comes from trees! 🌳'},
+      {q:'Which material is see-through?',opts:['Wood','Glass','Metal','Rock'],ans:1,why:'Glass is see-through! 🪟'},
+      {q:'A sponge is…?',opts:['Waterproof','Absorbent','Made of glass','Made of metal'],ans:1,why:'Sponges soak up water! 🧽'},
+      {q:'What are clothes made of?',opts:['Fabric','Rock','Plastic','Metal'],ans:0,why:'Clothes are made of fabric! 👕'},
+      {q:'Which is hard and shiny?',opts:['Fabric','Metal','Wood','Plastic'],ans:1,why:'Metal is hard and shiny! 🔩'},
+    ]},
+  { id:'space', title:'Space & Planets', icon:'🪐', grad:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    teach:`Our solar system has the **Sun** in the middle and 8 planets going around it.
+The planets in order are: **Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune**.
+**Earth** is the only planet we know has life. It has water, air, and just the right temperature.
+**The Moon** goes around the Earth. It is smaller than Earth.
+**Stars** are huge balls of burning gas. The Sun is a star.
+Earth spins round once in 24 hours, which gives us day and night. Earth travels round the Sun once in one year.`,
+    qs:[
+      {q:'How many planets are in our solar system?',opts:['6','7','8','9'],ans:2,why:'8 planets! 🪐'},
+      {q:'Which planet do we live on?',opts:['Mars','Earth','Venus','Jupiter'],ans:1,why:'We live on Earth! 🌍'},
+      {q:'What goes around the Earth?',opts:['The Sun','The Moon','Mars','Saturn'],ans:1,why:'The Moon orbits Earth! 🌙'},
+      {q:'The Sun is a…?',opts:['Planet','Moon','Star','Comet'],ans:2,why:'The Sun is a star! ⭐'},
+      {q:'How long is one day?',opts:['12 hours','24 hours','1 week','1 month'],ans:1,why:'24 hours! ⏰'},
+    ]},
+  { id:'forces', title:'Pushes & Pulls', icon:'⚡', grad:'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+    teach:`A **force** is a push or a pull.
+When you **push** something it moves away from you.
+When you **pull** something it moves towards you.
+**Gravity** is a pulling force from the Earth. It pulls everything down. That is why things fall.
+**Friction** is a force that slows things down when they rub together. A ball rolling on grass stops because of friction.
+**Magnets** can pull some metals (like iron) towards them. They can also push other magnets away.`,
+    qs:[
+      {q:'What is a force?',opts:['A colour','A push or pull','A smell','A sound'],ans:1,why:'A push or pull! 💪'},
+      {q:'What pulls things DOWN?',opts:['Friction','Gravity','Magnets','Air'],ans:1,why:'Gravity pulls everything down! ⬇️'},
+      {q:'What slows a ball on grass?',opts:['Gravity','Friction','Magnets','Wind'],ans:1,why:'Friction slows it! 🌱'},
+      {q:'Magnets attract…?',opts:['Wood','Plastic','Iron','Glass'],ans:2,why:'Magnets attract iron! 🧲'},
+      {q:'Pushing means moving something…?',opts:['Towards you','Away from you','In circles','Up only'],ans:1,why:'Away from you! 👉'},
+    ]},
+  { id:'weather', title:'Weather & Seasons', icon:'🌦️', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)',
+    teach:`The UK has four **seasons**: **Spring, Summer, Autumn and Winter**.
+**Spring** is when plants grow and baby animals are born.
+**Summer** is the warmest season with the longest days.
+**Autumn** is when leaves turn orange and fall from trees.
+**Winter** is the coldest season, sometimes with snow.
+**Weather** is what the sky and air are doing right now: sunny, rainy, windy, snowy, cloudy.
+**Clouds** are made of tiny water droplets. When clouds get heavy, water falls as **rain**.`,
+    qs:[
+      {q:'How many seasons are there?',opts:['Two','Three','Four','Five'],ans:2,why:'Four seasons! 🍂'},
+      {q:'Which season has the longest days?',opts:['Spring','Summer','Autumn','Winter'],ans:1,why:'Summer! ☀️'},
+      {q:'When do leaves fall from trees?',opts:['Spring','Summer','Autumn','Winter'],ans:2,why:'Autumn! 🍁'},
+      {q:'Clouds are made of…?',opts:['Smoke','Water droplets','Dust','Cotton'],ans:1,why:'Tiny water droplets! ☁️'},
+      {q:'The coldest season is…?',opts:['Spring','Summer','Autumn','Winter'],ans:3,why:'Winter! ❄️'},
+    ]},
+  { id:'body', title:'Human Body', icon:'🫀', grad:'linear-gradient(135deg,#ef4444,#ec4899)',
+    teach:`Your body has many parts, each doing an important job.
+Your **heart** pumps blood around your body.
+Your **lungs** help you breathe in air.
+Your **brain** thinks and controls everything.
+Your **stomach** digests the food you eat.
+Your **bones** give your body its shape. You have 206 bones when you are grown up.
+Your **skin** keeps everything inside and protects you.
+Your **teeth** chew your food. You should brush them twice a day!`,
+    qs:[
+      {q:'What pumps blood?',opts:['Lungs','Heart','Brain','Stomach'],ans:1,why:'The heart pumps blood! ❤️'},
+      {q:'What helps you breathe?',opts:['Heart','Stomach','Lungs','Brain'],ans:2,why:'Lungs! 🫁'},
+      {q:'What do teeth do?',opts:['Breathe','Chew food','Think','Pump blood'],ans:1,why:'Chew food! 🦷'},
+      {q:'How many bones do grown-ups have?',opts:['106','206','306','1000'],ans:1,why:'206 bones! 🦴'},
+      {q:'Which part thinks?',opts:['Brain','Heart','Skin','Stomach'],ans:0,why:'The brain! 🧠'},
+    ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════════════════════
+const HISTORY_LESSONS = [
+  { id:'fire', title:'The Great Fire of London', icon:'🔥', grad:'linear-gradient(135deg,#ef4444,#f59e0b)',
+    teach:`In **1666**, a terrible fire started in London.
+It began in a **bakery** on Pudding Lane, owned by Thomas Farriner. A spark from the oven set fire to the wooden building.
+The fire spread very quickly because most houses were made of **wood** and built very close together. There was also a strong wind.
+The fire burned for **four days**. It destroyed about 13,200 houses and 87 churches, including St Paul's Cathedral.
+**Samuel Pepys** wrote about the fire in his diary. He buried his cheese and wine to keep them safe!
+After the fire, London was rebuilt with **brick** and **stone** instead of wood. A new St Paul's Cathedral was built by **Sir Christopher Wren**.`,
+    qs:[
+      {q:'In what year did the Great Fire happen?',opts:['1066','1666','1766','1866'],ans:1,why:'1666! 🔥'},
+      {q:'Where did the fire start?',opts:['A palace','A bakery on Pudding Lane','A church','A school'],ans:1,why:'A bakery on Pudding Lane! 🍞'},
+      {q:'How long did the fire burn?',opts:['One day','Four days','A week','A month'],ans:1,why:'Four days! 📅'},
+      {q:'What did people build London with AFTER the fire?',opts:['Wood','Brick and stone','Paper','Metal'],ans:1,why:'Brick and stone! 🧱'},
+      {q:'Who rebuilt St Paul\'s Cathedral?',opts:['Samuel Pepys','Thomas Farriner','Sir Christopher Wren','The King'],ans:2,why:'Sir Christopher Wren! ⛪'},
+    ]},
+  { id:'egypt', title:'Ancient Egypt', icon:'🏛️', grad:'linear-gradient(135deg,#f59e0b,#eab308)',
+    teach:`The Ancient Egyptians lived over **3000 years ago** along the River **Nile** in Africa.
+They built huge **pyramids** as tombs for their kings, called **pharaohs**. The most famous pyramid is the Great Pyramid at Giza.
+When a pharaoh died, they were turned into a **mummy**. Special oils and cloth were used to preserve their body.
+Egyptians wrote using pictures called **hieroglyphs**.
+They believed in many gods, like **Ra** (the sun god) and **Anubis** (the god of the dead).
+**Tutankhamun** was a young pharaoh who became king at just 9 years old.`,
+    qs:[
+      {q:'Which river did Egyptians live along?',opts:['Thames','Amazon','Nile','Tigris'],ans:2,why:'The River Nile! 🏞️'},
+      {q:'What were Egyptian kings called?',opts:['Emperors','Pharaohs','Sultans','Chiefs'],ans:1,why:'Pharaohs! 👑'},
+      {q:'What were pyramids used as?',opts:['Schools','Tombs','Palaces','Shops'],ans:1,why:'Tombs for pharaohs! ⛏️'},
+      {q:'Writing in pictures is called…?',opts:['Hieroglyphs','Graffiti','Paintings','Letters'],ans:0,why:'Hieroglyphs! 📜'},
+      {q:'Who became king at age 9?',opts:['Ra','Anubis','Tutankhamun','Cleopatra'],ans:2,why:'Tutankhamun! 👶'},
+    ]},
+  { id:'nightingale', title:'Florence Nightingale', icon:'🕯️', grad:'linear-gradient(135deg,#ec4899,#f43f5e)',
+    teach:`**Florence Nightingale** was born in 1820. She is famous for being a **nurse** who changed medicine forever.
+When she was young, her family wanted her to get married, but she wanted to help sick people.
+During the **Crimean War** (1854), she took 38 nurses to help wounded soldiers. The hospitals were dirty and many soldiers were dying from infections.
+Florence made the hospitals clean. She made sure soldiers had fresh water, clean beds, and good food. Many more soldiers got better.
+She walked around at night carrying a **lamp** to check on patients. The soldiers called her **"The Lady with the Lamp"**.
+After the war, she opened a nursing school and made nursing a respected job.`,
+    qs:[
+      {q:'What job did Florence Nightingale do?',opts:['Doctor','Nurse','Teacher','Soldier'],ans:1,why:'She was a nurse! 💊'},
+      {q:'Which war did she help in?',opts:['World War One','The Crimean War','The Civil War','World War Two'],ans:1,why:'The Crimean War! ⚔️'},
+      {q:'What was her nickname?',opts:['The Angel','The Lady with the Lamp','The Healer','The Night Nurse'],ans:1,why:'The Lady with the Lamp! 🕯️'},
+      {q:'Why did more soldiers get better?',opts:['She sang','She made hospitals clean','She made them dance','She gave them cake'],ans:1,why:'Clean hospitals, fresh water, good food! 🧼'},
+      {q:'What did she open after the war?',opts:['A hospital','A nursing school','A castle','A shop'],ans:1,why:'A nursing school! 🏫'},
+    ]},
+  { id:'elizabeth', title:'Queen Elizabeth II', icon:'👑', grad:'linear-gradient(135deg,#8b5cf6,#6366f1)',
+    teach:`**Queen Elizabeth II** was born in 1926 in London.
+She became queen in **1952** when her father, King George VI, died. She was only 25.
+She was the **longest-reigning** British monarch, ruling for **70 years** until she died in 2022.
+She had four children: Charles, Anne, Andrew and Edward. Her eldest son **Charles** became king after her.
+She loved **horses** and **corgis** (small dogs). She always carried a handbag.
+She met lots of important people, including many prime ministers and presidents, and watched Britain change enormously during her reign.`,
+    qs:[
+      {q:'When did she become queen?',opts:['1926','1952','1977','2002'],ans:1,why:'1952! 👑'},
+      {q:'How long did she reign for?',opts:['30 years','50 years','70 years','100 years'],ans:2,why:'70 years! 📅'},
+      {q:'What dogs did she love?',opts:['Poodles','Corgis','Dalmatians','Labradors'],ans:1,why:'Corgis! 🐕'},
+      {q:'Who became king after her?',opts:['Andrew','Edward','Charles','William'],ans:2,why:'Her son Charles! 🤴'},
+      {q:'How many children did she have?',opts:['Two','Three','Four','Five'],ans:2,why:'Four children! 👨‍👩‍👧‍👦'},
+    ]},
+  { id:'romans', title:'The Romans in Britain', icon:'🏛️', grad:'linear-gradient(135deg,#dc2626,#f59e0b)',
+    teach:`About **2000 years ago**, the **Romans** came to Britain from Italy. Their leader **Julius Caesar** invaded twice, but it was **Emperor Claudius** who conquered Britain in **AD 43**.
+The Romans built straight **roads** across the country, many of which we still use today!
+They built **towns** with baths, theatres and shops. **Londinium** (London) was their biggest town.
+Emperor **Hadrian** built a huge stone **wall** across northern England to keep out attackers from Scotland. It is called **Hadrian's Wall** and you can still see it today.
+The Romans also brought **Latin** (their language), **coins**, and new foods like apples and carrots.`,
+    qs:[
+      {q:'Where did the Romans come from?',opts:['Greece','Egypt','Italy','France'],ans:2,why:'Italy! 🇮🇹'},
+      {q:'Which emperor conquered Britain?',opts:['Julius Caesar','Claudius','Hadrian','Nero'],ans:1,why:'Emperor Claudius, AD 43! 👑'},
+      {q:'What did the Romans build a lot of?',opts:['Castles','Straight roads','Windmills','Tunnels'],ans:1,why:'Straight roads! 🛣️'},
+      {q:'What was London called?',opts:['Londinium','Roma','Britannia','Camulodunum'],ans:0,why:'Londinium! 🏛️'},
+      {q:"Who built the big wall?",opts:['Claudius','Hadrian','Caesar','Nero'],ans:1,why:"Hadrian built Hadrian's Wall! 🧱"},
+    ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GEOGRAPHY
+// ═══════════════════════════════════════════════════════════════════════════
+const GEOGRAPHY_LESSONS = [
+  { id:'uk', title:'The United Kingdom', icon:'🇬🇧', grad:'linear-gradient(135deg,#1e40af,#ef4444)',
+    teach:`The **United Kingdom** (UK) is made up of **four countries**: **England**, **Scotland**, **Wales** and **Northern Ireland**.
+The **capital cities** are:
+- England: **London**
+- Scotland: **Edinburgh**
+- Wales: **Cardiff**
+- Northern Ireland: **Belfast**
+London is the biggest city in the UK. The UK is an **island nation** surrounded by the sea.
+The longest river is the **River Severn**. The highest mountain is **Ben Nevis** in Scotland.
+The UK's flag is called the **Union Jack**.`,
+    qs:[
+      {q:'How many countries make up the UK?',opts:['Two','Three','Four','Five'],ans:2,why:'Four countries! 🇬🇧'},
+      {q:'What is the capital of Scotland?',opts:['London','Edinburgh','Cardiff','Belfast'],ans:1,why:'Edinburgh! 🏰'},
+      {q:"What is the UK's flag called?",opts:['Union Jack','Red Dragon','St George','The Saltire'],ans:0,why:'The Union Jack! 🇬🇧'},
+      {q:'Highest mountain in the UK?',opts:['Snowdon','Ben Nevis','Scafell Pike','Everest'],ans:1,why:'Ben Nevis in Scotland! ⛰️'},
+      {q:'Capital of Wales?',opts:['Cardiff','Belfast','London','Edinburgh'],ans:0,why:'Cardiff! 🏴󠁧󠁢󠁷󠁬󠁳󠁿'},
+    ]},
+  { id:'continents', title:'Continents & Oceans', icon:'🌍', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)',
+    teach:`There are **7 continents** on Earth:
+1. **Africa**
+2. **Antarctica** (the icy one at the bottom!)
+3. **Asia** (the biggest)
+4. **Australia** (also called Oceania)
+5. **Europe** (where the UK is)
+6. **North America**
+7. **South America**
+There are **5 oceans**:
+- **Pacific Ocean** (the biggest)
+- **Atlantic Ocean**
+- **Indian Ocean**
+- **Arctic Ocean** (up at the top, very cold)
+- **Southern Ocean**`,
+    qs:[
+      {q:'How many continents are there?',opts:['5','6','7','8'],ans:2,why:'7 continents! 🌍'},
+      {q:'Which is the biggest continent?',opts:['Africa','Asia','Europe','Australia'],ans:1,why:'Asia is the biggest! 🗾'},
+      {q:'Which continent is the UK in?',opts:['Africa','Europe','Asia','America'],ans:1,why:'Europe! 🇪🇺'},
+      {q:'Which is the biggest ocean?',opts:['Atlantic','Pacific','Indian','Arctic'],ans:1,why:'The Pacific Ocean! 🌊'},
+      {q:'How many oceans are there?',opts:['3','4','5','7'],ans:2,why:'5 oceans! 🌊'},
+    ]},
+  { id:'rivers', title:'Rivers & Water', icon:'🏞️', grad:'linear-gradient(135deg,#0891b2,#06b6d4)',
+    teach:`A **river** is a long stream of flowing fresh water. Rivers start from high places (like mountains) and flow down to the **sea**.
+The place where a river starts is called the **source**. Where it meets the sea is called the **mouth**.
+The longest river in the **world** is the **River Nile** in Africa.
+The longest river in the **UK** is the **River Severn**, followed by the River Thames (which flows through London).
+Water travels in a cycle called the **water cycle**: sun warms water → water becomes vapour → clouds form → rain falls → water flows back to the sea.`,
+    qs:[
+      {q:'Where does a river start?',opts:['Mouth','Source','Sea','Middle'],ans:1,why:'The source! 🏔️'},
+      {q:'Longest river in the world?',opts:['Thames','Amazon','Nile','Severn'],ans:2,why:'The River Nile! 🐊'},
+      {q:'Which river flows through London?',opts:['Nile','Severn','Thames','Tyne'],ans:2,why:'The Thames! 🌉'},
+      {q:'Where rivers meet the sea is called the…?',opts:['Source','Mouth','Bank','Stream'],ans:1,why:'The mouth! 🌊'},
+      {q:'What is the cycle of water called?',opts:['Sun cycle','Water cycle','Earth cycle','Cloud cycle'],ans:1,why:'The water cycle! 💧'},
+    ]},
+  { id:'capitals', title:'World Capitals', icon:'🏛️', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)',
+    teach:`A **capital city** is the main city of a country, where the government is.
+Here are some famous capitals:
+- **France** → **Paris** (home of the Eiffel Tower)
+- **Italy** → **Rome**
+- **Spain** → **Madrid**
+- **USA** → **Washington DC**
+- **Japan** → **Tokyo**
+- **Australia** → **Canberra** (not Sydney!)
+- **Egypt** → **Cairo**
+- **India** → **New Delhi**
+- **China** → **Beijing**
+- **Germany** → **Berlin**`,
+    qs:[
+      {q:'Capital of France?',opts:['Rome','Madrid','Paris','Berlin'],ans:2,why:'Paris! 🗼'},
+      {q:'Capital of Japan?',opts:['Tokyo','Beijing','Seoul','Bangkok'],ans:0,why:'Tokyo! 🗾'},
+      {q:'Capital of Australia?',opts:['Sydney','Melbourne','Canberra','Perth'],ans:2,why:'Canberra (not Sydney!) 🦘'},
+      {q:'Capital of Italy?',opts:['Milan','Venice','Rome','Florence'],ans:2,why:'Rome! 🍕'},
+      {q:'Capital of Egypt?',opts:['Cairo','Giza','Luxor','Alexandria'],ans:0,why:'Cairo! 🐪'},
+    ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RE
+// ═══════════════════════════════════════════════════════════════════════════
+const RE_LESSONS = [
+  { id:'christianity', title:'Christianity', icon:'✝️', grad:'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+    teach:`**Christianity** is a religion that began about 2000 years ago. Christians believe in one God and follow the teachings of **Jesus Christ**.
+Christians meet in a **church** to pray and sing songs. Their holy book is called the **Bible**.
+Christians celebrate:
+- **Christmas** (December 25th) - Jesus's birthday
+- **Easter** - when they remember Jesus coming back to life
+The leader of a church is often called a **vicar** or **priest**.
+Christians believe in being kind, forgiving others, and loving your neighbour.`,
+    qs:[
+      {q:'Who do Christians follow?',opts:['Jesus Christ','Muhammad','Moses','Buddha'],ans:0,why:'Jesus Christ! ✝️'},
+      {q:"Christianity's holy book?",opts:['Quran','Torah','Bible','Bhagavad Gita'],ans:2,why:'The Bible! 📖'},
+      {q:'Where do Christians worship?',opts:['Mosque','Church','Temple','Synagogue'],ans:1,why:'In a church! ⛪'},
+      {q:'When is Christmas?',opts:['December 25th','January 1st','April 1st','July 4th'],ans:0,why:'December 25th! 🎄'},
+      {q:'Easter celebrates…?',opts:["Jesus's birthday","Jesus coming back to life","A wedding","A harvest"],ans:1,why:'Jesus coming back to life! 🐣'},
+    ]},
+  { id:'islam', title:'Islam', icon:'☪️', grad:'linear-gradient(135deg,#10b981,#06b6d4)',
+    teach:`**Islam** is a religion followed by people called **Muslims**.
+Muslims believe in one God called **Allah** and follow the teachings of the **Prophet Muhammad**.
+Muslims pray **5 times a day** facing the holy city of **Mecca** in Saudi Arabia.
+Their holy book is called the **Quran**.
+Muslims meet to pray at a **mosque**.
+During the holy month of **Ramadan**, Muslims fast (don't eat or drink) during daylight hours. They celebrate with **Eid** at the end of Ramadan.`,
+    qs:[
+      {q:'Muslims worship at a…?',opts:['Church','Temple','Mosque','Shrine'],ans:2,why:'A mosque! 🕌'},
+      {q:"Muslims' holy book?",opts:['Bible','Quran','Torah','Vedas'],ans:1,why:'The Quran! 📖'},
+      {q:'How many times a day do Muslims pray?',opts:['One','Three','Five','Seven'],ans:2,why:'5 times a day! 🙏'},
+      {q:'Holy month of fasting?',opts:['Ramadan','Diwali','Easter','Passover'],ans:0,why:'Ramadan! 🌙'},
+      {q:'The holy city is…?',opts:['Mecca','Jerusalem','Rome','London'],ans:0,why:'Mecca! 🕋'},
+    ]},
+  { id:'judaism', title:'Judaism', icon:'✡️', grad:'linear-gradient(135deg,#3b82f6,#06b6d4)',
+    teach:`**Judaism** is one of the oldest religions. People who follow it are called **Jewish** or **Jews**.
+Jews believe in one God and the teachings of **Moses**.
+Their holy book is called the **Torah**.
+Jews worship at a **synagogue**. The day of rest is called the **Sabbath** (Shabbat), from Friday evening to Saturday evening.
+Important festivals include:
+- **Hanukkah** (the Festival of Lights, with an 8-branched candlestick called a menorah)
+- **Passover** (remembering when Jews were freed from Egypt)
+The leader at a synagogue is called a **rabbi**.`,
+    qs:[
+      {q:'Jewish people worship at a…?',opts:['Church','Synagogue','Mosque','Temple'],ans:1,why:'A synagogue! 🕍'},
+      {q:'Their holy book?',opts:['Bible','Quran','Torah','Vedas'],ans:2,why:'The Torah! 📜'},
+      {q:'Festival of Lights is called…?',opts:['Hanukkah','Passover','Eid','Christmas'],ans:0,why:'Hanukkah! 🕎'},
+      {q:'The Jewish leader is a…?',opts:['Priest','Imam','Rabbi','Vicar'],ans:2,why:'A rabbi! 📖'},
+      {q:'When is the Sabbath?',opts:['Monday','Wednesday','Friday eve to Saturday eve','Sunday'],ans:2,why:'Friday evening to Saturday evening! 🕯️'},
+    ]},
+  { id:'hinduism', title:'Hinduism', icon:'🕉️', grad:'linear-gradient(135deg,#f59e0b,#ec4899)',
+    teach:`**Hinduism** is a very old religion that started in India. People who follow it are called **Hindus**.
+Hindus believe in one God who appears in many forms, like **Brahma**, **Vishnu** and **Shiva**.
+They worship at a **mandir** (temple).
+Their holy books include the **Vedas**.
+The most famous Hindu festival is **Diwali**, the **Festival of Lights**. People light lamps called **diyas**, give gifts and eat special food.
+Hindus believe in being kind to all living things. Many are **vegetarian**.`,
+    qs:[
+      {q:'Where does Hinduism come from?',opts:['Egypt','India','China','Israel'],ans:1,why:'India! 🇮🇳'},
+      {q:'Hindu festival of lights?',opts:['Diwali','Hanukkah','Eid','Easter'],ans:0,why:'Diwali! 🪔'},
+      {q:'Hindus worship at a…?',opts:['Mosque','Mandir','Church','Synagogue'],ans:1,why:'A mandir! 🛕'},
+      {q:'Small lamps lit at Diwali are called…?',opts:['Candles','Diyas','Torches','Lanterns'],ans:1,why:'Diyas! 🪔'},
+      {q:'Many Hindus are…?',opts:['Vegetarian','Dancers','Farmers','Fishermen'],ans:0,why:'Many Hindus are vegetarian! 🥗'},
+    ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SPELLING TESTS
+// ═══════════════════════════════════════════════════════════════════════════
+const SPELLING_TESTS = [
+  { id:'spell1', title:'Everyday Words', icon:'✏️', level:'Level 1',
+    words:['because','people','friend','school','water','morning','garden','mother','father','little']},
+  { id:'spell2', title:'Tricky Words', icon:'📝', level:'Level 2',
+    words:['beautiful','everyone','different','favourite','remember','important','question','something','together','thought']},
+  { id:'spell3', title:'Challenge Words', icon:'🎯', level:'Level 3',
+    words:['experience','separate','definitely','necessary','believe','knowledge','medicine','business','library','weather']},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ODD ONE OUT
+// ═══════════════════════════════════════════════════════════════════════════
+const ODD_PUZZLES = [
+  { opts:['apple','pear','banana','carrot'], ans:3, why:'Carrot is a vegetable! 🥕' },
+  { opts:['dog','cat','rabbit','goldfish'], ans:3, why:'Goldfish lives in water! 🐟' },
+  { opts:['red','blue','happy','green'], ans:2, why:'Happy is a feeling, not a colour! 😊' },
+  { opts:['rose','tulip','daisy','tree'], ans:3, why:'Tree is not a flower! 🌳' },
+  { opts:['car','bike','scooter','boat'], ans:3, why:'Boat goes on water! ⛵' },
+  { opts:['triangle','square','circle','cube'], ans:3, why:'Cube is 3D! 🧊' },
+  { opts:['piano','guitar','violin','painting'], ans:3, why:'Painting is not a musical instrument! 🎨' },
+  { opts:['Monday','Tuesday','Friday','June'], ans:3, why:'June is a month! 📅' },
+  { opts:['oak','elm','rose','birch'], ans:2, why:'Rose is a flower, the rest are trees! 🌲' },
+  { opts:['England','Paris','Scotland','Wales'], ans:1, why:'Paris is a city, the rest are countries! 🏙️' },
+  { opts:['sun','moon','star','cloud'], ans:3, why:'Cloud is weather, not in space! ☁️' },
+  { opts:['butter','bread','cheese','book'], ans:3, why:'Book is not food! 📖' },
+  { opts:['whale','shark','dolphin','penguin'], ans:3, why:'Penguin is a bird! 🐧' },
+  { opts:['run','jump','sleep','hop'], ans:2, why:'Sleep is still, the rest are active! 💤' },
+  { opts:['hot','warm','cold','loud'], ans:3, why:'Loud is a sound, rest are temperatures! 🔊' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MATCHING
+// ═══════════════════════════════════════════════════════════════════════════
+const MATCH_SETS = [
+  { id:'countries', title:'Countries & Capitals', icon:'🌍',
+    pairs:[['France','Paris'],['Italy','Rome'],['Japan','Tokyo'],['Egypt','Cairo'],['USA','Washington'],['Spain','Madrid']] },
+  { id:'animals', title:'Animals & Homes', icon:'🏠',
+    pairs:[['Bee','Hive'],['Rabbit','Burrow'],['Bird','Nest'],['Bear','Cave'],['Fish','Pond'],['Spider','Web']] },
+  { id:'babies', title:'Animal Babies', icon:'👶',
+    pairs:[['Cat','Kitten'],['Dog','Puppy'],['Cow','Calf'],['Sheep','Lamb'],['Horse','Foal'],['Duck','Duckling']] },
+  { id:'opposites', title:'Opposites', icon:'🔄',
+    pairs:[['Hot','Cold'],['Big','Small'],['Happy','Sad'],['Fast','Slow'],['Light','Dark'],['Up','Down']] },
+  { id:'plus10', title:'Add 10', icon:'🔟',
+    pairs:[['7','17'],['12','22'],['23','33'],['46','56'],['58','68'],['89','99']] },
+  { id:'times2', title:'Double It', icon:'✌️',
+    pairs:[['3','6'],['5','10'],['8','16'],['12','24'],['15','30'],['20','40']] },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHORT ANSWER (marked by keyword check)
+// ═══════════════════════════════════════════════════════════════════════════
+const SHORT_ANSWER = [
+  { q:'What do we call baby sheep?', accept:['lamb','lambs'], why:'A baby sheep is a lamb! 🐑' },
+  { q:'What is the capital city of England?', accept:['london'], why:'London is the capital of England! 🏙️' },
+  { q:'What colour do you get mixing red and yellow?', accept:['orange'], why:'Red + yellow = orange! 🟠' },
+  { q:'How many legs does a spider have?', accept:['8','eight'], why:'Spiders have 8 legs! 🕷️' },
+  { q:'Which planet do we live on?', accept:['earth'], why:'We live on Earth! 🌍' },
+  { q:'What do bees make?', accept:['honey'], why:'Bees make honey! 🍯' },
+  { q:'Largest mammal in the ocean?', accept:['whale','blue whale'], why:'The blue whale! 🐋' },
+  { q:'What is 6 + 7?', accept:['13','thirteen'], why:'6 + 7 = 13! 🔢' },
+  { q:'What do caterpillars turn into?', accept:['butterfly','butterflies'], why:'Butterflies! 🦋' },
+  { q:'The day after Wednesday is…?', accept:['thursday'], why:'Thursday! 📅' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function Stars({ count }) {
+  return (
+    <div style={{display:'flex',gap:4,justifyContent:'center',flexWrap:'wrap',marginTop:6}}>
+      {Array.from({length:Math.min(count,10)}).map((_,i) => (
+        <span key={i} style={{fontSize:'1.2rem',animation:`star-spin ${2+i*0.3}s linear infinite`}}>⭐</span>
+      ))}
+    </div>
+  );
+}
+
+function Header({ gems, onHome, title }) {
+  return (
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',gap:10}}>
+      <button className="btn-ghost" onClick={onHome} style={{fontSize:'0.85rem'}}>🏠 Home</button>
+      {title && <div style={{fontWeight:800,flex:1,textAlign:'center',fontSize:'1rem'}}>{title}</div>}
+      <div style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',background:'rgba(255,255,255,0.08)',borderRadius:50,fontSize:'0.88rem'}}>
+        💎 {gems}
+      </div>
+    </div>
+  );
+}
+
+function ProgressBar({ value }) {
+  return (
+    <div className="progress-bar"><div className="progress-fill" style={{width:`${value*100}%`}}/></div>
+  );
+}
+
+// ── Welcome ────────────────────────────────────────────────────────────────
+function Welcome({ gems, onStart }) {
+  return (
+    <div className="slide-in" style={{textAlign:'center',padding:'40px 20px',maxWidth:480,margin:'0 auto'}}>
+      <div className="float" style={{fontSize:'5rem',marginBottom:16}}>🌟</div>
+      <h1 style={{fontSize:'2.4rem',fontWeight:900,background:'linear-gradient(135deg,#ec4899,#a855f7)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',marginBottom:8}}>
+        Star Academy
+      </h1>
+      <p style={{color:'rgba(255,255,255,0.75)',fontSize:'1.05rem',marginBottom:6}}>
+        Stories, maths, science, history, spelling, puzzles and more!
+      </p>
+      {gems > 0 && (
+        <p style={{color:'#fbbf24',fontSize:'0.95rem',marginBottom:18}}>You have <strong>{gems} 💎</strong> so far!</p>
+      )}
+      <p style={{color:'rgba(255,255,255,0.55)',fontSize:'0.9rem',marginBottom:28}}>
+        Pick a subject and earn gems! 💎
+      </p>
+      <button className="btn-primary" onClick={onStart}>Let's Go! 🚀</button>
+    </div>
+  );
+}
+
+// ── Home (subject picker) ──────────────────────────────────────────────────
+function Home({ gems, onPick, onReset }) {
+  const subjects = [
+    { id:'stories', title:'Stories', desc:'Read & answer', icon:'📖', grad:'linear-gradient(135deg,#f59e0b,#f97316)', count:STORIES.length },
+    { id:'maths', title:'Maths', desc:'Train, Practise, Test', icon:'🔢', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', count:3 },
+    { id:'science', title:'Science', desc:'Learn & quiz', icon:'🔬', grad:'linear-gradient(135deg,#10b981,#06b6d4)', count:SCIENCE_LESSONS.length },
+    { id:'history', title:'History', desc:'Stories of the past', icon:'🏛️', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', count:HISTORY_LESSONS.length },
+    { id:'geography', title:'Geography', desc:'Places & maps', icon:'🌍', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', count:GEOGRAPHY_LESSONS.length },
+    { id:'re', title:'RE', desc:'World religions', icon:'🕊️', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)', count:RE_LESSONS.length },
+    { id:'spelling', title:'Spelling', desc:'Type the words', icon:'✏️', grad:'linear-gradient(135deg,#ec4899,#f43f5e)', count:SPELLING_TESTS.length },
+    { id:'odd', title:'Odd One Out', desc:'Spot the different one', icon:'🔍', grad:'linear-gradient(135deg,#a855f7,#ec4899)', count:ODD_PUZZLES.length },
+    { id:'match', title:'Matching', desc:'Match the pairs', icon:'🎴', grad:'linear-gradient(135deg,#10b981,#8b5cf6)', count:MATCH_SETS.length },
+    { id:'short', title:'Short Answer', desc:'Type the answer', icon:'💭', grad:'linear-gradient(135deg,#3b82f6,#10b981)', count:SHORT_ANSWER.length },
+    { id:'prep', title:'11+ Prep', desc:'Brain stretchers', icon:'🎓', grad:'linear-gradient(135deg,#6366f1,#8b5cf6)', count:PREP_QUESTIONS.length },
+  ];
+  return (
+    <div className="slide-in" style={{padding:'10px 20px 40px',maxWidth:720,margin:'0 auto'}}>
+      <div style={{textAlign:'center',marginBottom:24}}>
+        <div style={{fontSize:'1.8rem',fontWeight:800,marginBottom:4}}>Choose a Subject 🎯</div>
+        <div style={{color:'rgba(255,255,255,0.65)',fontSize:'0.9rem'}}>You have <strong style={{color:'#fbbf24'}}>{gems} 💎</strong></div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(165px, 1fr))',gap:14}}>
+        {subjects.map(s => (
+          <div key={s.id} className="cat-card" onClick={() => onPick(s.id)}
+            style={{background:s.grad,boxShadow:`0 6px 18px rgba(0,0,0,0.25)`}}>
+            <div style={{fontSize:'2rem',marginBottom:6}}>{s.icon}</div>
+            <div style={{fontWeight:800,fontSize:'1rem',marginBottom:2}}>{s.title}</div>
+            <div style={{fontSize:'0.78rem',opacity:0.85}}>{s.desc}</div>
+            <div style={{fontSize:'0.72rem',opacity:0.7,marginTop:4}}>{s.count} {s.count===1?'activity':'activities'}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{textAlign:'center',marginTop:30}}>
+        <button className="btn-ghost" onClick={onReset} style={{fontSize:'0.8rem'}}>🔄 Reset Progress</button>
+      </div>
+    </div>
+  );
+}
+
+// ── List picker (for stories, lessons) ─────────────────────────────────────
+function Picker({ title, items, onPick, onHome, gems }) {
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome} title={title}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:680,margin:'0 auto'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:14}}>
+          {items.map(it => (
+            <div key={it.id} className="cat-card" onClick={() => onPick(it.id)}
+              style={{background:it.grad,boxShadow:'0 6px 18px rgba(0,0,0,0.25)'}}>
+              <div style={{fontSize:'1.8rem',marginBottom:6}}>{it.icon}</div>
+              <div style={{fontWeight:800,fontSize:'0.95rem'}}>{it.title}</div>
+              {it.level && <div style={{fontSize:'0.75rem',opacity:0.85,marginTop:2}}>{it.level}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Reading (story display) ────────────────────────────────────────────────
+function Reading({ story, onReady, onHome, gems }) {
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:560,margin:'0 auto'}}>
+        <div className="card" style={{padding:24,marginBottom:20}}>
+          <div style={{fontSize:'1.3rem',fontWeight:800,marginBottom:10,color:'#fbbf24'}}>{story.icon} {story.title}</div>
+          <div style={{color:'rgba(255,255,255,0.85)',lineHeight:1.7,fontSize:'0.97rem',whiteSpace:'pre-line'}}>{story.text}</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <p style={{color:'rgba(255,255,255,0.6)',fontSize:'0.88rem',marginBottom:14}}>Read carefully, then answer the questions!</p>
+          <button className="btn-primary" onClick={onReady}>I'm Ready! ✨</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Teach (lesson display) ─────────────────────────────────────────────────
+function Teach({ lesson, onReady, onHome, gems }) {
+  const formatted = lesson.teach.split('\n').map((line,i) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g).map((p,j) =>
+      p.startsWith('**') && p.endsWith('**')
+        ? <strong key={j} style={{color:'#fbbf24'}}>{p.slice(2,-2)}</strong>
+        : <React.Fragment key={j}>{p}</React.Fragment>
+    );
+    return <div key={i} style={{marginBottom:8}}>{parts}</div>;
+  });
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:580,margin:'0 auto'}}>
+        <div className="card" style={{padding:24,marginBottom:20}}>
+          <div style={{fontSize:'1.3rem',fontWeight:800,marginBottom:12,color:'#fbbf24'}}>{lesson.icon} {lesson.title}</div>
+          <div style={{color:'rgba(255,255,255,0.85)',lineHeight:1.7,fontSize:'0.97rem'}}>{formatted}</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <p style={{color:'rgba(255,255,255,0.6)',fontSize:'0.88rem',marginBottom:14}}>Learn the facts, then test yourself!</p>
+          <button className="btn-primary" onClick={onReady}>I'm Ready! ✨</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MCQ Quiz ───────────────────────────────────────────────────────────────
+function Quiz({ title, icon, questions, onDone, onHome, gems }) {
+  const [qi,setQi] = React.useState(0);
+  const [chosen,setChosen] = React.useState(null);
+  const [score,setScore] = React.useState(0);
+  const [showWhy,setShowWhy] = React.useState(false);
+  const q = questions[qi];
+
+  function pick(i, e) {
+    if (chosen !== null) return;
+    setChosen(i);
+    if (i === q.ans) { playCorrect(); setScore(s=>s+1); if(e) burstSparkles(e.clientX, e.clientY); }
+    else playWrong();
+    setShowWhy(true);
+  }
+
+  function next() {
+    if (qi+1 < questions.length) { setQi(qi+1); setChosen(null); setShowWhy(false); }
+    else { playFanfare(); onDone(score); }
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:520,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>{icon} {title}</span>
+            <span>Q{qi+1} / {questions.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={qi/questions.length}/>
+        </div>
+        <div className="card pop" key={qi} style={{padding:22,marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:16,lineHeight:1.45}}>{q.q}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {q.opts.map((opt,i) => (
+              <button key={i}
+                className={`opt-btn${chosen!==null ? i===q.ans?' correct':i===chosen?' wrong':'' : ''}`}
+                onClick={(e)=>pick(i,e)}>
+                <span style={{marginRight:8,opacity:0.6}}>{['A','B','C','D'][i]}.</span>{opt}
+              </button>
+            ))}
+          </div>
+          {showWhy && (
+            <div style={{marginTop:14,padding:'10px 14px',borderRadius:12,background:chosen===q.ans?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',border:`1px solid ${chosen===q.ans?'#10b981':'#ef4444'}`}}>
+              <div style={{fontWeight:700,marginBottom:4}}>{chosen===q.ans?'🌟 Brilliant!':'💡 Nearly!'}</div>
+              <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.85)'}}>{q.why}</div>
+            </div>
+          )}
+        </div>
+        {showWhy && (
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" onClick={next}>{qi+1 < questions.length ? 'Next Question →' : 'Finish! 🎉'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Spelling Test (type the word) ──────────────────────────────────────────
+function SpellingTest({ test, onDone, onHome, gems }) {
+  const [wi,setWi] = React.useState(0);
+  const [input,setInput] = React.useState('');
+  const [checked,setChecked] = React.useState(null);
+  const [score,setScore] = React.useState(0);
+  const word = test.words[wi];
+
+  function speak(w) {
+    try {
+      const u = new SpeechSynthesisUtterance(w);
+      u.rate = 0.85; u.lang = 'en-GB';
+      window.speechSynthesis.speak(u);
+    } catch(e) {}
+  }
+
+  React.useEffect(() => { speak(word); }, [wi]);
+
+  function check(e) {
+    e.preventDefault();
+    if (checked !== null) return;
+    const ok = input.trim().toLowerCase() === word.toLowerCase();
+    setChecked(ok);
+    if (ok) { playCorrect(); setScore(s=>s+1); burstSparkles(window.innerWidth/2, window.innerHeight/2); }
+    else playWrong();
+  }
+
+  function next() {
+    if (wi+1 < test.words.length) { setWi(wi+1); setInput(''); setChecked(null); }
+    else { playFanfare(); onDone(score); }
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>✏️ {test.title}</span>
+            <span>Word {wi+1}/{test.words.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={wi/test.words.length}/>
+        </div>
+        <div className="card pop" key={wi} style={{padding:24,marginBottom:16,textAlign:'center'}}>
+          <div style={{fontSize:'0.9rem',color:'rgba(255,255,255,0.7)',marginBottom:14}}>Listen and spell the word</div>
+          <button className="btn-ghost" onClick={() => speak(word)} style={{fontSize:'1.5rem',padding:'12px 22px',marginBottom:18}}>🔊 Hear Again</button>
+          <form onSubmit={check}>
+            <input className="type-in" type="text" autoFocus autoComplete="off"
+              value={input} onChange={e=>setInput(e.target.value)}
+              disabled={checked!==null}
+              placeholder="Type the word…"
+              style={{marginBottom:14,textAlign:'center',fontSize:'1.2rem'}}/>
+            {checked === null && (
+              <button className="btn-primary" type="submit" disabled={!input.trim()}>Check ✓</button>
+            )}
+          </form>
+          {checked !== null && (
+            <div style={{marginTop:14,padding:'12px 14px',borderRadius:12,background:checked?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',border:`1px solid ${checked?'#10b981':'#ef4444'}`}}>
+              <div style={{fontWeight:700,marginBottom:4}}>{checked?'🌟 Correct!':'💡 Not quite'}</div>
+              {!checked && <div style={{fontSize:'0.92rem'}}>The word was: <strong style={{color:'#fbbf24'}}>{word}</strong></div>}
+            </div>
+          )}
+        </div>
+        {checked !== null && (
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" onClick={next}>{wi+1 < test.words.length ? 'Next Word →' : 'Finish! 🎉'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Short Answer ───────────────────────────────────────────────────────────
+function ShortAnswer({ onDone, onHome, gems }) {
+  const [qi,setQi] = React.useState(0);
+  const [input,setInput] = React.useState('');
+  const [checked,setChecked] = React.useState(null);
+  const [score,setScore] = React.useState(0);
+  const q = SHORT_ANSWER[qi];
+
+  function check(e) {
+    e.preventDefault();
+    if (checked !== null) return;
+    const ans = input.trim().toLowerCase();
+    const ok = q.accept.some(a => a.toLowerCase() === ans);
+    setChecked(ok);
+    if (ok) { playCorrect(); setScore(s=>s+1); burstSparkles(window.innerWidth/2, window.innerHeight/2); }
+    else playWrong();
+  }
+
+  function next() {
+    if (qi+1 < SHORT_ANSWER.length) { setQi(qi+1); setInput(''); setChecked(null); }
+    else { playFanfare(); onDone(score); }
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>💭 Short Answer</span>
+            <span>Q{qi+1}/{SHORT_ANSWER.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={qi/SHORT_ANSWER.length}/>
+        </div>
+        <div className="card pop" key={qi} style={{padding:22,marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:16,lineHeight:1.45}}>{q.q}</div>
+          <form onSubmit={check}>
+            <input className="type-in" type="text" autoFocus autoComplete="off"
+              value={input} onChange={e=>setInput(e.target.value)} disabled={checked!==null}
+              placeholder="Type your answer…" style={{marginBottom:14}}/>
+            {checked === null && (
+              <button className="btn-primary" type="submit" disabled={!input.trim()}>Check ✓</button>
+            )}
+          </form>
+          {checked !== null && (
+            <div style={{marginTop:14,padding:'10px 14px',borderRadius:12,background:checked?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',border:`1px solid ${checked?'#10b981':'#ef4444'}`}}>
+              <div style={{fontWeight:700,marginBottom:4}}>{checked?'🌟 Correct!':'💡 Nearly!'}</div>
+              <div style={{fontSize:'0.88rem'}}>{q.why}</div>
+            </div>
+          )}
+        </div>
+        {checked !== null && (
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" onClick={next}>{qi+1 < SHORT_ANSWER.length ? 'Next →' : 'Finish! 🎉'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Odd One Out ────────────────────────────────────────────────────────────
+function OddOneOut({ onDone, onHome, gems }) {
+  const [qi,setQi] = React.useState(0);
+  const [chosen,setChosen] = React.useState(null);
+  const [score,setScore] = React.useState(0);
+  const q = ODD_PUZZLES[qi];
+
+  function pick(i,e) {
+    if (chosen !== null) return;
+    setChosen(i);
+    if (i === q.ans) { playCorrect(); setScore(s=>s+1); if(e) burstSparkles(e.clientX,e.clientY); }
+    else playWrong();
+  }
+
+  function next() {
+    if (qi+1 < ODD_PUZZLES.length) { setQi(qi+1); setChosen(null); }
+    else { playFanfare(); onDone(score); }
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>🔍 Odd One Out</span>
+            <span>Q{qi+1}/{ODD_PUZZLES.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={qi/ODD_PUZZLES.length}/>
+        </div>
+        <div className="card pop" key={qi} style={{padding:22,marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:16,textAlign:'center'}}>Which is the ODD ONE OUT?</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+            {q.opts.map((opt,i) => (
+              <button key={i}
+                className={`opt-btn${chosen!==null ? i===q.ans?' correct':i===chosen?' wrong':'' : ''}`}
+                onClick={(e)=>pick(i,e)} style={{textAlign:'center',fontWeight:600}}>
+                {opt}
+              </button>
+            ))}
+          </div>
+          {chosen !== null && (
+            <div style={{marginTop:14,padding:'10px 14px',borderRadius:12,background:chosen===q.ans?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',border:`1px solid ${chosen===q.ans?'#10b981':'#ef4444'}`}}>
+              <div style={{fontSize:'0.88rem'}}>{chosen===q.ans?'🌟 ':'💡 '}{q.why}</div>
+            </div>
+          )}
+        </div>
+        {chosen !== null && (
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" onClick={next}>{qi+1 < ODD_PUZZLES.length ? 'Next →' : 'Finish! 🎉'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Matching Game ──────────────────────────────────────────────────────────
+function MatchPicker({ onPick, onHome, gems }) {
+  return <Picker title="Matching Games" items={MATCH_SETS} onPick={onPick} onHome={onHome} gems={gems}/>;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+function MatchGame({ set, onDone, onHome, gems }) {
+  const [leftCol] = React.useState(() => shuffle(set.pairs.map((p,i)=>({label:p[0],idx:i}))));
+  const [rightCol] = React.useState(() => shuffle(set.pairs.map((p,i)=>({label:p[1],idx:i}))));
+  const [leftSel,setLeftSel] = React.useState(null);
+  const [rightSel,setRightSel] = React.useState(null);
+  const [matched,setMatched] = React.useState([]);
+  const [wrong,setWrong] = React.useState(null);
+
+  React.useEffect(() => {
+    if (leftSel !== null && rightSel !== null) {
+      if (leftSel === rightSel) {
+        playCorrect();
+        burstSparkles(window.innerWidth/2, window.innerHeight/2);
+        setMatched(m => [...m, leftSel]);
+        setTimeout(() => { setLeftSel(null); setRightSel(null); }, 400);
+      } else {
+        playWrong();
+        setWrong({l:leftSel,r:rightSel});
+        setTimeout(() => { setLeftSel(null); setRightSel(null); setWrong(null); }, 600);
+      }
+    }
+  }, [leftSel, rightSel]);
+
+  React.useEffect(() => {
+    if (matched.length === set.pairs.length) {
+      setTimeout(() => { playFanfare(); onDone(set.pairs.length); }, 500);
+    }
+  }, [matched]);
+
+  function cls(idx, side) {
+    if (matched.includes(idx)) return 'matched';
+    if (wrong && ((side==='l'&&wrong.l===idx) || (side==='r'&&wrong.r===idx))) return 'wrong-flash';
+    if (side==='l' && leftSel===idx) return 'selected';
+    if (side==='r' && rightSel===idx) return 'selected';
+    return '';
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:520,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:16}}>
+          <div style={{fontSize:'1.3rem',fontWeight:800}}>{set.icon} {set.title}</div>
+          <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.6)',marginTop:4}}>{matched.length}/{set.pairs.length} matched</div>
+          <div style={{marginTop:8}}><ProgressBar value={matched.length/set.pairs.length}/></div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {leftCol.map(item => (
+              <button key={'L'+item.idx} className={`pair-btn ${cls(item.idx,'l')}`}
+                disabled={matched.includes(item.idx)}
+                onClick={() => setLeftSel(item.idx)}>{item.label}</button>
+            ))}
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {rightCol.map(item => (
+              <button key={'R'+item.idx} className={`pair-btn ${cls(item.idx,'r')}`}
+                disabled={matched.includes(item.idx)}
+                onClick={() => setRightSel(item.idx)}>{item.label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Maths Section (tiered) ─────────────────────────────────────────────────
+function MathsSection({ onDone, onHome, gems }) {
+  const [tier,setTier] = React.useState(null);
+  const [qi,setQi] = React.useState(0);
+  const [chosen,setChosen] = React.useState(null);
+  const [score,setScore] = React.useState(0);
+  const [done,setDone] = React.useState(false);
+
+  const qs = tier==='train'?MATHS_TRAIN : tier==='practise'?MATHS_PRACTISE : MATHS_TEST;
+  const label = {train:'🚂 Train',practise:'📝 Practise',test:'🏆 Test'}[tier];
+
+  function pick(i,e) {
+    if (chosen !== null) return;
+    setChosen(i);
+    const q = qs[qi];
+    if (i === q.ans) { playCorrect(); setScore(s=>s+1); if(e) burstSparkles(e.clientX,e.clientY); }
+    else playWrong();
+  }
+
+  function next() {
+    if (qi+1 < qs.length) { setQi(qi+1); setChosen(null); }
+    else { playFanfare(); setDone(true); onDone(score); }
+  }
+
+  function reset() { setTier(null); setQi(0); setChosen(null); setScore(0); setDone(false); }
+
+  if (!tier) {
+    return (
+      <div>
+        <Header gems={gems} onHome={onHome} title="Maths"/>
+        <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
+          <p style={{color:'rgba(255,255,255,0.7)',textAlign:'center',marginBottom:20}}>Choose your level. Work up from Train to Test!</p>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            {[{k:'train',l:'🚂 Train',d:'Warm up (10 qs)',c:'#10b981'},{k:'practise',l:'📝 Practise',d:'Build skill (10 qs)',c:'#3b82f6'},{k:'test',l:'🏆 Test',d:'Challenge yourself (10 qs)',c:'#f59e0b'}].map(t => (
+              <button key={t.k} className="card cat-card" onClick={() => setTier(t.k)}
+                style={{padding:18,background:`linear-gradient(135deg,${t.c}33,${t.c}22)`,border:`1px solid ${t.c}66`}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,marginBottom:4}}>{t.l}</div>
+                <div style={{fontSize:'0.85rem',opacity:0.75}}>{t.d}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (done) return null;
+
+  const q = qs[qi];
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>{label}</span>
+            <span>Q{qi+1}/{qs.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={qi/qs.length}/>
+        </div>
+        <div className="card pop" key={qi} style={{padding:22,marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:16}}>{q.q}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {q.opts.map((opt,i) => (
+              <button key={i} className={`opt-btn${chosen!==null ? i===q.ans?' correct':i===chosen?' wrong':'' : ''}`} onClick={(e)=>pick(i,e)}>
+                <span style={{marginRight:8,opacity:0.6}}>{['A','B','C','D'][i]}.</span>{opt}
+              </button>
+            ))}
+          </div>
+          {chosen !== null && (
+            <div style={{marginTop:12,padding:'10px 14px',borderRadius:12,background:chosen===q.ans?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',fontSize:'0.88rem'}}>
+              {chosen===q.ans?'🌟 ':'💡 '}{q.why}
+            </div>
+          )}
+        </div>
+        {chosen !== null && (
+          <div style={{textAlign:'center',display:'flex',gap:10,justifyContent:'center'}}>
+            <button className="btn-primary" onClick={next}>{qi+1 < qs.length ? 'Next →' : 'Finish! 🎉'}</button>
+            <button className="btn-ghost" onClick={reset}>← Levels</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Result Screen ──────────────────────────────────────────────────────────
+function Result({ score, total, onHome }) {
+  const pct = score / total;
+  const msg = pct === 1 ? 'Perfect!' : pct >= 0.75 ? 'Brilliant!' : pct >= 0.5 ? 'Good work!' : 'Keep going!';
+  const emoji = pct === 1 ? '🏆' : pct >= 0.75 ? '🌟' : pct >= 0.5 ? '💫' : '💪';
+  React.useEffect(() => { playFanfare(); }, []);
+  return (
+    <div className="slide-in" style={{padding:'40px 20px',maxWidth:400,margin:'0 auto',textAlign:'center'}}>
+      <div className="float" style={{fontSize:'4.5rem',marginBottom:12}}>{emoji}</div>
+      <h2 style={{fontSize:'1.8rem',fontWeight:900,marginBottom:8,background:'linear-gradient(135deg,#fbbf24,#f97316)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{msg}</h2>
+      <p style={{color:'rgba(255,255,255,0.75)',fontSize:'1.1rem',marginBottom:6}}>
+        You got <strong style={{color:'#fbbf24'}}>{score}</strong> out of <strong>{total}</strong>
+      </p>
+      <p style={{color:'#fbbf24',fontSize:'1rem',marginBottom:10}}>+{score} 💎 earned!</p>
+      <Stars count={score}/>
+      <div style={{marginTop:28}}>
+        <button className="btn-primary" onClick={onHome}>🏠 Back to Home</button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════════════════════
+function App() {
+  const saved = loadState();
+  const [screen,setScreen] = React.useState('welcome');
+  const [gems,setGems] = React.useState(saved.gems || 0);
+  const [category,setCategory] = React.useState(null);
+  const [currentItem,setCurrentItem] = React.useState(null);
+  const [lastResult,setLastResult] = React.useState(null);
+
+  React.useEffect(() => { saveState({gems}); }, [gems]);
+
+  function goHome() { setScreen('home'); setCategory(null); setCurrentItem(null); }
+
+  function pickCategory(cat) {
+    setCategory(cat);
+    if (cat === 'stories') setScreen('storyPicker');
+    else if (cat === 'science') setScreen('sciencePicker');
+    else if (cat === 'history') setScreen('historyPicker');
+    else if (cat === 'geography') setScreen('geoPicker');
+    else if (cat === 're') setScreen('rePicker');
+    else if (cat === 'spelling') setScreen('spellingPicker');
+    else if (cat === 'match') setScreen('matchPicker');
+    else if (cat === 'odd') setScreen('odd');
+    else if (cat === 'short') setScreen('short');
+    else if (cat === 'maths') setScreen('maths');
+    else if (cat === 'prep') setScreen('prep');
+  }
+
+  function finishActivity(score, total) {
+    setGems(g => g + score);
+    setLastResult({score, total});
+    setScreen('result');
+  }
+
+  function resetProgress() {
+    if (confirm('Reset all your gems and progress?')) {
+      setGems(0);
+      saveState({gems:0});
+    }
+  }
+
+  const storyMap = Object.fromEntries(STORIES.map(s => [s.id, s]));
+  const scienceMap = Object.fromEntries(SCIENCE_LESSONS.map(s => [s.id, s]));
+  const historyMap = Object.fromEntries(HISTORY_LESSONS.map(s => [s.id, s]));
+  const geoMap = Object.fromEntries(GEOGRAPHY_LESSONS.map(s => [s.id, s]));
+  const reMap = Object.fromEntries(RE_LESSONS.map(s => [s.id, s]));
+  const spellMap = Object.fromEntries(SPELLING_TESTS.map(s => [s.id, s]));
+  const matchMap = Object.fromEntries(MATCH_SETS.map(s => [s.id, s]));
+
+  return (
+    <div style={{minHeight:'100vh',paddingBottom:40}}>
+      {screen === 'welcome' && <Welcome gems={gems} onStart={() => setScreen('home')}/>}
+      {screen === 'home' && <Home gems={gems} onPick={pickCategory} onReset={resetProgress}/>}
+
+      {/* Stories */}
+      {screen === 'storyPicker' && <Picker title="Stories" items={STORIES} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('storyRead'); }}/>}
+      {screen === 'storyRead' && currentItem && <Reading story={storyMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('storyQuiz')}/>}
+      {screen === 'storyQuiz' && currentItem && <Quiz title={storyMap[currentItem].title} icon={storyMap[currentItem].icon}
+        questions={storyMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, storyMap[currentItem].qs.length)}/>}
+
+      {/* Science */}
+      {screen === 'sciencePicker' && <Picker title="Science" items={SCIENCE_LESSONS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('scienceTeach'); }}/>}
+      {screen === 'scienceTeach' && currentItem && <Teach lesson={scienceMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('scienceQuiz')}/>}
+      {screen === 'scienceQuiz' && currentItem && <Quiz title={scienceMap[currentItem].title} icon={scienceMap[currentItem].icon}
+        questions={scienceMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, scienceMap[currentItem].qs.length)}/>}
+
+      {/* History */}
+      {screen === 'historyPicker' && <Picker title="History" items={HISTORY_LESSONS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('historyTeach'); }}/>}
+      {screen === 'historyTeach' && currentItem && <Teach lesson={historyMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('historyQuiz')}/>}
+      {screen === 'historyQuiz' && currentItem && <Quiz title={historyMap[currentItem].title} icon={historyMap[currentItem].icon}
+        questions={historyMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, historyMap[currentItem].qs.length)}/>}
+
+      {/* Geography */}
+      {screen === 'geoPicker' && <Picker title="Geography" items={GEOGRAPHY_LESSONS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('geoTeach'); }}/>}
+      {screen === 'geoTeach' && currentItem && <Teach lesson={geoMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('geoQuiz')}/>}
+      {screen === 'geoQuiz' && currentItem && <Quiz title={geoMap[currentItem].title} icon={geoMap[currentItem].icon}
+        questions={geoMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, geoMap[currentItem].qs.length)}/>}
+
+      {/* RE */}
+      {screen === 'rePicker' && <Picker title="RE" items={RE_LESSONS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('reTeach'); }}/>}
+      {screen === 'reTeach' && currentItem && <Teach lesson={reMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('reQuiz')}/>}
+      {screen === 'reQuiz' && currentItem && <Quiz title={reMap[currentItem].title} icon={reMap[currentItem].icon}
+        questions={reMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, reMap[currentItem].qs.length)}/>}
+
+      {/* Spelling */}
+      {screen === 'spellingPicker' && <Picker title="Spelling" items={SPELLING_TESTS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('spellingTest'); }}/>}
+      {screen === 'spellingTest' && currentItem && <SpellingTest test={spellMap[currentItem]} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, spellMap[currentItem].words.length)}/>}
+
+      {/* Matching */}
+      {screen === 'matchPicker' && <MatchPicker gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setScreen('matchGame'); }}/>}
+      {screen === 'matchGame' && currentItem && <MatchGame set={matchMap[currentItem]} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, matchMap[currentItem].pairs.length)}/>}
+
+      {/* Odd One Out */}
+      {screen === 'odd' && <OddOneOut gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, ODD_PUZZLES.length)}/>}
+
+      {/* Short Answer */}
+      {screen === 'short' && <ShortAnswer gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, SHORT_ANSWER.length)}/>}
+
+      {/* Maths */}
+      {screen === 'maths' && <MathsSection gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, 10)}/>}
+
+      {/* 11+ Prep */}
+      {screen === 'prep' && <Quiz title="11+ Prep" icon="🎓" questions={PREP_QUESTIONS} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, PREP_QUESTIONS.length)}/>}
+
+      {/* Result */}
+      {screen === 'result' && lastResult && <Result score={lastResult.score} total={lastResult.total} onHome={goHome}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
