@@ -1899,7 +1899,7 @@ function SpellingTest({ test, onDone, onHome, gems }) {
   function speak(w) {
     try {
       const u = new SpeechSynthesisUtterance(w);
-      u.rate = 0.85; u.lang = 'en-GB';
+      u.rate = 0.55; u.lang = 'en-GB';
       window.speechSynthesis.speak(u);
     } catch(e) {}
   }
@@ -2578,7 +2578,7 @@ function Result({ score, total, earned, passed, gems, robuxTarget, onHome }) {
       <h2 style={{fontSize:'1.8rem',fontWeight:900,marginBottom:8,background:`linear-gradient(135deg,${passed?'#fbbf24,#f97316':'#ef4444,#f43f5e'})`,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{msg}</h2>
       <p style={{color:'rgba(255,255,255,0.75)',fontSize:'1.1rem',marginBottom:6}}>
         You got <strong style={{color:'#fbbf24'}}>{score}</strong> out of <strong>{total}</strong>
-        {!passed && <span style={{color:'#ef4444'}}> (need 60% to earn gems)</span>}
+        {!passed && <span style={{color:'#ef4444'}}> (need 90% to earn gems)</span>}
       </p>
       {passed ? (
         <p style={{color:'#fbbf24',fontSize:'1rem',marginBottom:10}}>+{earned} 💎 earned!</p>
@@ -2669,10 +2669,10 @@ function App() {
   }
 
   function finishActivity(score, total, label) {
-    // Quality gate: must get at least 60% to earn gems
+    // Quality gate: must get at least 90% to earn gems
     const pct = total > 0 ? score / total : 0;
-    const earned = pct >= 0.6 ? score : 0;
-    const passed = pct >= 0.6;
+    const earned = pct >= 0.9 ? score : 0;
+    const passed = pct >= 0.9;
 
     const newGems = gems + earned;
     setGems(newGems);
