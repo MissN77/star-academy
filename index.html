@@ -110,6 +110,44 @@ function saveState(s) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e) {}
 }
 
+// ── Supabase (fire-and-forget tracking) ────────────────────────────────────
+const SB_URL = 'https://bdlrmtcrjenoyullctsw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkbHJtdGNyamVub3l1bGxjdHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDM1NDAsImV4cCI6MjA5MDM3OTU0MH0.Wb1aEGF7U44LzJEiej1qJjRN_1r0S_fwCYJroViYfoc';
+const SB_HEADERS = {'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'};
+
+async function sbPost(table, body) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/${table}`, {method:'POST', headers:SB_HEADERS, body:JSON.stringify(body)});
+  } catch(e) { console.warn('Supabase offline:', e.message); }
+}
+
+function trackActivity(label, type, score, total) {
+  sbPost('star_activity', {
+    child_name: 'Ava',
+    activity_type: type || 'quiz',
+    activity_name: label || 'Activity',
+    score: score || 0,
+    total: total || 0,
+    gems_earned: score || 0
+  });
+}
+
+function syncStarStats(gems, totalActivities) {
+  const today = new Date().toISOString().slice(0,10);
+  fetch(`${SB_URL}/rest/v1/child_stats?child_name=eq.Ava&app=eq.star-academy`, {
+    method:'GET', headers:SB_HEADERS
+  }).then(r=>r.json()).then(data => {
+    if (data && data.length > 0) {
+      fetch(`${SB_URL}/rest/v1/child_stats?child_name=eq.Ava&app=eq.star-academy`, {
+        method:'PATCH', headers:SB_HEADERS,
+        body:JSON.stringify({total_gems:gems,total_activities:totalActivities,last_active:today,updated_at:new Date().toISOString()})
+      }).catch(()=>{});
+    } else {
+      sbPost('child_stats', {child_name:'Ava',app:'star-academy',total_gems:gems,total_activities:totalActivities,last_active:today});
+    }
+  }).catch(()=>{});
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // STORIES (Reading comprehension)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2610,13 +2648,18 @@ function App() {
   }
 
   function finishActivity(score, total, label) {
-    setGems(g => g + score);
+    const newGems = gems + score;
+    setGems(newGems);
     setLastResult({score, total});
-    setHistory(h => [...h, {label: label || 'Activity', score, when:Date.now()}].slice(-50));
+    const newHistory = [...history, {label: label || 'Activity', score, when:Date.now()}].slice(-50);
+    setHistory(newHistory);
     if (pendingQuestKey) {
       setQuestCompleted(qc => ({...qc, [pendingQuestKey]: true}));
       setPendingQuestKey(null);
     }
+    // Track to Supabase
+    trackActivity(label || 'Activity', category || 'quiz', score, total);
+    syncStarStats(newGems, newHistory.length);
     setScreen('result');
   }
 

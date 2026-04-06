@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mum's Dashboard</title>
+<style>
+  :root{--bg:#FAF5EE;--card:#fff;--navy:#1B2A4A;--teal:#1A8A7D;--coral:#E87461;--gold:#E8D48A;--cream2:#F0EBE3;--r:14px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--navy);padding:16px;max-width:800px;margin:0 auto;}
+  h1{font-size:1.5rem;margin-bottom:2px;}
+  .sub{color:#888;font-size:0.88rem;margin-bottom:20px;}
+  .card{background:var(--card);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .card h2{font-size:1rem;margin-bottom:10px;color:var(--teal);}
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
+  .stat{background:var(--cream2);border-radius:var(--r);padding:14px 10px;text-align:center;}
+  .stat .n{font-size:1.6rem;font-weight:900;color:var(--navy);}
+  .stat .l{font-size:0.72rem;color:#888;margin-top:2px;}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{padding:8px 18px;border-radius:50px;border:1px solid #ddd;background:var(--card);cursor:pointer;font-size:0.88rem;font-weight:600;}
+  .tab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+  table{width:100%;border-collapse:collapse;font-size:0.88rem;}
+  th{text-align:left;padding:8px 6px;border-bottom:2px solid var(--cream2);font-weight:700;}
+  td{padding:6px;border-bottom:1px solid var(--cream2);}
+  .bar{height:6px;border-radius:3px;background:var(--cream2);overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;background:var(--teal);}
+  .empty{text-align:center;color:#aaa;padding:30px 10px;font-size:0.9rem;}
+  .child-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:50px;font-weight:700;font-size:0.88rem;cursor:pointer;border:2px solid transparent;}
+  .child-pill.active{border-color:var(--teal);background:var(--teal);color:#fff;}
+  .child-pill:not(.active){background:var(--cream2);}
+  .refresh{padding:6px 14px;border-radius:50px;border:1px solid #ccc;background:var(--card);cursor:pointer;font-size:0.82rem;}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .robux{background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff;padding:10px 16px;border-radius:var(--r);text-align:center;font-weight:800;font-size:1.2rem;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Mum's Dashboard</h1>
+    <div class="sub">Track Ava and Jacob's learning across all apps.</div>
+  </div>
+  <button class="refresh" onclick="loadAll()">🔄 Refresh</button>
+</div>
+
+<div class="tabs" id="childTabs"></div>
+
+<div id="content"><div class="empty">Loading...</div></div>
+
+<script>
+const SB_URL = 'https://bdlrmtcrjenoyullctsw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkbHJtdGNyamVub3l1bGxjdHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDM1NDAsImV4cCI6MjA5MDM3OTU0MH0.Wb1aEGF7U44LzJEiej1qJjRN_1r0S_fwCYJroViYfoc';
+const JACOB_ID = 'ff567baf-d27e-43b7-94f2-90dbe19fd031';
+const H = {'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`};
+
+let activeChild = 'Ava';
+let data = { starActivity:[], pianoActivity:[], jacobQuizzes:[], jacobStats:null, jacobDaily:[], childStats:[] };
+
+async function q(table, params) {
+  const url = new URL(`${SB_URL}/rest/v1/${table}`);
+  Object.entries(params||{}).forEach(([k,v])=>url.searchParams.set(k,v));
+  try {
+    const r = await fetch(url, {headers:H});
+    return r.ok ? await r.json() : [];
+  } catch(e) { return []; }
+}
+
+async function loadAll() {
+  document.getElementById('content').innerHTML = '<div class="empty">Loading...</div>';
+  const [star, piano, jq, js, jd, cs] = await Promise.all([
+    q('star_activity', {select:'*', order:'completed_at.desc', limit:'100'}),
+    q('piano_activity', {select:'*', order:'completed_at.desc', limit:'100'}),
+    q('quiz_results', {player_id:`eq.${JACOB_ID}`, select:'*', order:'completed_at.desc', limit:'50'}),
+    q('player_stats', {player_id:`eq.${JACOB_ID}`, select:'*'}),
+    q('daily_activity', {player_id:`eq.${JACOB_ID}`, select:'*', order:'date.desc', limit:'14'}),
+    q('child_stats', {select:'*'}),
+  ]);
+  data = { starActivity:star||[], pianoActivity:piano||[], jacobQuizzes:jq||[], jacobStats:(js||[])[0]||null, jacobDaily:jd||[], childStats:cs||[] };
+  renderTabs();
+  renderChild();
+}
+
+function renderTabs() {
+  const el = document.getElementById('childTabs');
+  el.innerHTML = ['Ava','Jacob'].map(c =>
+    `<div class="child-pill ${c===activeChild?'active':''}" onclick="activeChild='${c}';renderTabs();renderChild();">${c==='Ava'?'⭐':'🎓'} ${c}</div>`
+  ).join('');
+}
+
+function renderChild() {
+  if (activeChild === 'Ava') renderAva();
+  else renderJacob();
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderAva() {
+  const star = data.starActivity.filter(a=>a.child_name==='Ava');
+  const piano = data.pianoActivity.filter(a=>a.child_name==='Ava');
+  const stats = data.childStats.find(s=>s.child_name==='Ava'&&s.app==='star-academy');
+
+  const totalGems = stats?.total_gems || star.reduce((s,a)=>s+(a.gems_earned||0),0);
+  const totalActs = stats?.total_activities || star.length;
+  const lastActive = stats?.last_active || (star.length ? star[0].completed_at : null);
+  const robuxRate = 2;
+  const robux = totalGems * robuxRate;
+
+  // Group star activities by date
+  const byDate = {};
+  star.forEach(a => {
+    const d = new Date(a.completed_at).toLocaleDateString('en-GB');
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(a);
+  });
+
+  let html = '';
+
+  // Robux box
+  html += `<div class="robux">💰 ${robux} Robux earned (${totalGems} gems × ${robuxRate})</div>`;
+  html += '<div style="height:14px"></div>';
+
+  // Stats
+  html += '<div class="stats">';
+  html += `<div class="stat"><div class="n">${totalGems}</div><div class="l">💎 Gems</div></div>`;
+  html += `<div class="stat"><div class="n">${totalActs}</div><div class="l">Activities</div></div>`;
+  html += `<div class="stat"><div class="n">${piano.length}</div><div class="l">🎹 Piano</div></div>`;
+  html += `<div class="stat"><div class="n">${lastActive ? fmtDate(lastActive).split(' ')[0] : 'N/A'}</div><div class="l">Last Active</div></div>`;
+  html += '</div>';
+
+  // Star Academy recent
+  html += '<div class="card"><h2>⭐ Star Academy - Recent Activity</h2>';
+  if (star.length === 0) {
+    html += '<div class="empty">No activity yet. Once Ava completes quizzes, they will show here.</div>';
+  } else {
+    html += '<table><tr><th>Activity</th><th>Score</th><th>When</th></tr>';
+    star.slice(0,15).forEach(a => {
+      const pct = a.total > 0 ? Math.round(a.score/a.total*100) : 0;
+      html += `<tr><td>${a.activity_name}</td><td>${a.score}/${a.total} (${pct}%)</td><td>${fmtDate(a.completed_at)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+
+  // Piano
+  html += '<div class="card"><h2>🎹 Piano Programme</h2>';
+  if (piano.length === 0) {
+    html += '<div class="empty">No piano lessons tracked yet.</div>';
+  } else {
+    html += '<table><tr><th>Lesson</th><th>When</th></tr>';
+    piano.slice(0,10).forEach(p => {
+      html += `<tr><td>Lesson ${p.lesson_number}: ${p.lesson_name}</td><td>${fmtDate(p.completed_at)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+
+  // Activity by day
+  html += '<div class="card"><h2>📅 Activity by Day</h2>';
+  const days = Object.keys(byDate).slice(0,7);
+  if (days.length === 0) {
+    html += '<div class="empty">No daily data yet.</div>';
+  } else {
+    html += '<table><tr><th>Date</th><th>Activities</th><th>Gems</th></tr>';
+    days.forEach(d => {
+      const acts = byDate[d];
+      const gems = acts.reduce((s,a)=>s+(a.gems_earned||0),0);
+      html += `<tr><td>${d}</td><td>${acts.length}</td><td>+${gems} 💎</td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderJacob() {
+  const js = data.jacobStats;
+  const jq = data.jacobQuizzes;
+  const jd = data.jacobDaily;
+  const piano = data.pianoActivity.filter(a=>a.child_name==='Jacob');
+
+  const totalXP = js?.total_xp || 0;
+  const level = js?.level || 1;
+  const streak = js?.current_streak || 0;
+  const lastActive = js?.last_active || 'N/A';
+
+  let html = '';
+
+  // Stats
+  html += '<div class="stats">';
+  html += `<div class="stat"><div class="n">${totalXP}</div><div class="l">⚡ XP</div></div>`;
+  html += `<div class="stat"><div class="n">${level}</div><div class="l">📊 Level</div></div>`;
+  html += `<div class="stat"><div class="n">${streak}🔥</div><div class="l">Streak</div></div>`;
+  html += `<div class="stat"><div class="n">${piano.length}</div><div class="l">🎹 Piano</div></div>`;
+  html += '</div>';
+
+  // Recent quizzes
+  html += '<div class="card"><h2>🎓 11+ Tutor - Recent Quizzes</h2>';
+  if (jq.length === 0) {
+    html += '<div class="empty">No quiz data yet.</div>';
+  } else {
+    html += '<table><tr><th>Section</th><th>Score</th><th>XP</th><th>When</th></tr>';
+    jq.slice(0,15).forEach(q => {
+      const pct = q.total > 0 ? Math.round(q.correct/q.total*100) : 0;
+      html += `<tr><td>${q.sub_section||q.section}</td><td>${q.correct}/${q.total} (${pct}%)</td><td>+${q.xp_earned}</td><td>${fmtDate(q.completed_at)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+
+  // Piano
+  html += '<div class="card"><h2>🎹 Piano Programme</h2>';
+  if (piano.length === 0) {
+    html += '<div class="empty">No piano lessons tracked yet.</div>';
+  } else {
+    html += '<table><tr><th>Lesson</th><th>When</th></tr>';
+    piano.slice(0,10).forEach(p => {
+      html += `<tr><td>Lesson ${p.lesson_number}: ${p.lesson_name}</td><td>${fmtDate(p.completed_at)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+
+  // Daily activity (11+ only)
+  html += '<div class="card"><h2>📅 Daily Activity (11+)</h2>';
+  if (jd.length === 0) {
+    html += '<div class="empty">No daily data yet.</div>';
+  } else {
+    html += '<table><tr><th>Date</th><th>Quizzes</th><th>XP</th></tr>';
+    jd.slice(0,7).forEach(d => {
+      html += `<tr><td>${d.date}</td><td>${d.quizzes_done}</td><td>+${d.total_xp}</td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+
+  document.getElementById('content').innerHTML = html;
+}
+
+loadAll();
+</script>
+</body>
+</html>
