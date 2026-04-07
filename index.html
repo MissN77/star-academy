@@ -1720,6 +1720,8 @@ function Home({ gems, onPick, onReset, robux }) {
     { id:'match', title:'Matching', desc:'Match the pairs', icon:'🎴', grad:'linear-gradient(135deg,#10b981,#8b5cf6)', count:MATCH_SETS.length },
     { id:'short', title:'Short Answer', desc:'Type the answer', icon:'💭', grad:'linear-gradient(135deg,#3b82f6,#10b981)', count:SHORT_ANSWER.length },
     { id:'prep', title:'11+ Prep', desc:'Brain stretchers', icon:'🎓', grad:'linear-gradient(135deg,#6366f1,#8b5cf6)', count:PREP_QUESTIONS.length },
+    { id:'assessments', title:'Maths Tests', desc:'Term assessments', icon:'📋', grad:'linear-gradient(135deg,#1A8A7D,#1B4D5C)', count:4 },
+    { id:'piano', title:'Piano', desc:'Daily practice', icon:'🎹', grad:'linear-gradient(135deg,#1a0533,#ec4899)', count:1 },
   ];
   return (
     <div className="slide-in" style={{padding:'10px 20px 40px',maxWidth:720,margin:'0 auto'}}>
@@ -1898,9 +1900,18 @@ function SpellingTest({ test, onDone, onHome, gems }) {
 
   function speak(w) {
     try {
-      const u = new SpeechSynthesisUtterance(w);
-      u.rate = 0.55; u.lang = 'en-GB';
-      window.speechSynthesis.speak(u);
+      window.speechSynthesis.cancel();
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(w);
+        u.rate = 0.45;
+        u.pitch = 1.0;
+        u.lang = 'en-GB';
+        // Try to pick a British English voice
+        const voices = window.speechSynthesis.getVoices();
+        const brit = voices.find(v => v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en'));
+        if (brit) u.voice = brit;
+        window.speechSynthesis.speak(u);
+      }, 150);
     } catch(e) {}
   }
 
@@ -2645,6 +2656,8 @@ function App() {
     else if (cat === 'drawing') setScreen('drawing');
     else if (cat === 'quests') setScreen('quests');
     else if (cat === 'report') setScreen('report');
+    else if (cat === 'assessments') setScreen('assessments');
+    else if (cat === 'piano') { window.open('https://missn77.github.io/star-academy/piano.html', '_blank'); }
   }
 
   function launchQuestActivity(day, act) {
@@ -2812,6 +2825,35 @@ function App() {
       {screen === 'grammarQuiz' && currentItem && <Quiz title={grammarMap[currentItem].title} icon={grammarMap[currentItem].icon}
         questions={grammarMap[currentItem].qs} gems={gems} onHome={goHome}
         onDone={score => finishActivity(score, grammarMap[currentItem].qs.length, "📝 " + grammarMap[currentItem].title)}/>}
+
+      {/* Maths Tests (Assessments) */}
+      {screen === 'assessments' && (() => {
+        const tests = [
+          { title:'Maths Term 1', url:'https://missn77.github.io/curriculum-app/assessments/y2-maths-term1/', icon:'1️⃣' },
+          { title:'Maths Term 2', url:'https://missn77.github.io/curriculum-app/assessments/y2-maths-term2/', icon:'2️⃣' },
+          { title:'Maths Term 3', url:'https://missn77.github.io/curriculum-app/assessments/y2-maths-term3/', icon:'3️⃣' },
+          { title:'Mental Maths', url:'https://missn77.github.io/curriculum-app/assessments/y2-mental-maths/', icon:'🧠' },
+        ];
+        return (
+          <div>
+            <Header gems={gems} onHome={goHome} title="Maths Tests"/>
+            <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:680,margin:'0 auto'}}>
+              <div style={{display:'grid',gap:14}}>
+                {tests.map((t,i) => (
+                  <div key={i} className="cat-card" onClick={() => window.open(t.url, '_blank')}
+                    style={{background:'linear-gradient(135deg,#1A8A7D,#1B4D5C)',boxShadow:'0 6px 18px rgba(0,0,0,0.25)',display:'flex',alignItems:'center',gap:14,cursor:'pointer'}}>
+                    <div style={{fontSize:'2rem'}}>{t.icon}</div>
+                    <div>
+                      <div style={{fontWeight:800,fontSize:'1rem'}}>{t.title}</div>
+                      <div style={{fontSize:'0.78rem',opacity:0.85}}>Opens in new tab</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Result */}
       {screen === 'result' && lastResult && <Result score={lastResult.score} total={lastResult.total} earned={lastResult.earned} passed={lastResult.passed} gems={gems} robuxTarget={400} onHome={goHome}/>}
