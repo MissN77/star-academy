@@ -2887,7 +2887,7 @@ function LanguageLearn({ set, onDone, onHome, gems }) {
 }
 
 // ── Daily Quests ───────────────────────────────────────────────────────────
-function DailyQuests({ completed, onLaunch, onHome, gems, robuxPerGem }) {
+function DailyQuests({ completed, onLaunch, onHome, gems, robux }) {
   const [expandedDay,setExpandedDay] = React.useState(1);
   const totalActs = DAILY_QUESTS.reduce((s,d)=>s+d.activities.length,0);
   const doneCount = Object.keys(completed).length;
@@ -2899,7 +2899,7 @@ function DailyQuests({ completed, onLaunch, onHome, gems, robuxPerGem }) {
           <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.75)',marginBottom:6}}>Holiday Adventure</div>
           <div style={{fontSize:'1.4rem',fontWeight:800,marginBottom:4}}>{doneCount} / {totalActs} quests done!</div>
           <div style={{marginTop:8,marginBottom:10}}><ProgressBar value={doneCount/totalActs}/></div>
-          <div style={{fontSize:'0.95rem',color:'#fbbf24',fontWeight:700}}>💰 {gems * robuxPerGem} Robux earned!</div>
+          <div style={{fontSize:'0.95rem',color:'#fbbf24',fontWeight:700}}>💰 {robux} Robux earned!</div>
         </div>
         {DAILY_QUESTS.map(day => {
           const dayCompleted = day.activities.filter(a => completed[`${day.day}-${a.type}-${a.id||''}-${a.label}`]).length;
@@ -2939,10 +2939,10 @@ function DailyQuests({ completed, onLaunch, onHome, gems, robuxPerGem }) {
 }
 
 // ── Show Mum Report ────────────────────────────────────────────────────────
-function ReportScreen({ gems, completed, history, robuxPerGem, onHome, onSetRate }) {
+function ReportScreen({ gems, completed, history, totalTaskMinutes, robux, onHome }) {
   const totalActs = Object.keys(completed).length;
   const today = new Date().toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long'});
-  const robux = gems * robuxPerGem;
+  const minsToNext = 30 - (totalTaskMinutes % 30);
   const recent = (history || []).slice(-12).reverse();
 
   const SUBJECT_LABELS = {
@@ -2982,7 +2982,7 @@ function ReportScreen({ gems, completed, history, robuxPerGem, onHome, onSetRate
   const weakSubjects = subjectEntries.filter(([,v]) => v.correct/v.total < 0.7).map(([k]) => k);
   const strongSubjects = subjectEntries.filter(([,v]) => v.correct/v.total >= 0.85).map(([k]) => k);
 
-  const summaryLines = [`Ava's Star Academy - ${today}`,`${gems} gems · ${(history||[]).length} activities · ${robux} Robux`,'',
+  const summaryLines = [`Ava's Star Academy - ${today}`,`${totalTaskMinutes} mins worked · ${(history||[]).length} activities · ${robux} Robux`,'',
     ...subjectEntries.map(([k,v])=>`${(SUBJECT_LABELS[k]||k).replace(/[^\x20-\x7E]/g,'').trim()}: ${v.correct}/${v.total} (${Math.round(v.correct/v.total*100)}%)`),
     '','Tips:',
     ...weakSubjects.slice(0,3).map(k=>`• ${(SUBJECT_LABELS[k]||k).replace(/[^\x20-\x7E]/g,'').trim()}: ${HELP_TIPS[k]||'Practise together at home'}`)
@@ -3057,8 +3057,7 @@ function ReportScreen({ gems, completed, history, robuxPerGem, onHome, onSetRate
         <div className="card" style={{padding:18,marginBottom:14,textAlign:'center',background:'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(6,182,212,0.2))'}}>
           <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.75)',marginBottom:4}}>Robux Earned</div>
           <div style={{fontSize:'2.2rem',fontWeight:900,color:'#10b981'}}>💰 {robux}</div>
-          <div style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.5)',marginTop:4}}>{robuxPerGem} Robux per gem · 2 gems per passed activity</div>
-          <button className="btn-ghost" onClick={onSetRate} style={{marginTop:10,fontSize:'0.8rem'}}>⚙️ Change Robux rate</button>
+          <div style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.5)',marginTop:4}}>{totalTaskMinutes} mins worked · {minsToNext} min to next Robux</div>
         </div>
 
         {recent.length > 0 && (
@@ -3088,13 +3087,12 @@ function ReportScreen({ gems, completed, history, robuxPerGem, onHome, onSetRate
 }
 
 // ── Result Screen ──────────────────────────────────────────────────────────
-function Result({ score, total, earned, passed, gems, robuxTarget, onHome }) {
+function Result({ score, total, earned, passed, minutesAdded, totalMinutes, robux, onHome }) {
   const pct = total > 0 ? score / total : 0;
   const msg = !passed ? 'Try again!' : pct === 1 ? 'Perfect!' : pct >= 0.75 ? 'Brilliant!' : 'Good work!';
   const emoji = !passed ? '💪' : pct === 1 ? '🏆' : pct >= 0.75 ? '🌟' : '💫';
-  const robuxEarned = gems || 0;
-  const target = robuxTarget || 200;
-  const robuxPct = Math.min(robuxEarned / target, 1);
+  const minsToNext = 30 - ((totalMinutes || 0) % 30);
+  const barPct = Math.min(((totalMinutes || 0) % 30) / 30, 1);
   React.useEffect(() => { if(passed) playFanfare(); else playWrong(); }, []);
   return (
     <div className="slide-in" style={{padding:'40px 20px',maxWidth:400,margin:'0 auto',textAlign:'center'}}>
@@ -3104,27 +3102,22 @@ function Result({ score, total, earned, passed, gems, robuxTarget, onHome }) {
         You got <strong style={{color:'#fbbf24'}}>{score}</strong> out of <strong>{total}</strong>
         {!passed && <span style={{color:'#ef4444'}}> (need 90% to earn gems)</span>}
       </p>
-      {passed ? (
-        <p style={{color:'#fbbf24',fontSize:'1rem',marginBottom:10}}>+{earned} 💎 earned!</p>
-      ) : (
-        <p style={{color:'#ef4444',fontSize:'0.95rem',marginBottom:10}}>No gems this time. Try again and get more right!</p>
-      )}
+      {minutesAdded > 0 && <p style={{color:'#10b981',fontSize:'0.95rem',marginBottom:4}}>+{minutesAdded} min worked!</p>}
       {passed && <Stars count={earned}/>}
 
       <div style={{marginTop:20,padding:16,background:'rgba(255,255,255,0.06)',borderRadius:14}}>
-        <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.7)',marginBottom:6}}>Weekly Robux Progress</div>
+        <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.7)',marginBottom:6}}>Robux Progress (1 per 30 min)</div>
         <div style={{display:'flex',alignItems:'center',gap:10,justifyContent:'center',marginBottom:8}}>
           <span style={{fontSize:'1.4rem'}}>💰</span>
-          <span style={{fontSize:'1.3rem',fontWeight:900,color:'#10b981'}}>{robuxEarned} / {target}</span>
+          <span style={{fontSize:'1.3rem',fontWeight:900,color:'#10b981'}}>{robux || 0} Robux · {minsToNext} min to next</span>
         </div>
         <div className="progress-bar" style={{height:12,borderRadius:6}}>
-          <div className="progress-fill" style={{width:`${robuxPct*100}%`,height:'100%',borderRadius:6,background:robuxPct>=1?'linear-gradient(90deg,#10b981,#06b6d4)':'linear-gradient(90deg,#ec4899,#8b5cf6)'}}/>
+          <div className="progress-fill" style={{width:`${barPct*100}%`,height:'100%',borderRadius:6,background:'linear-gradient(90deg,#10b981,#06b6d4)'}}/>
         </div>
-        {robuxPct >= 1 && <div style={{marginTop:8,color:'#10b981',fontWeight:700}}>🎉 Target reached! Show mum!</div>}
       </div>
 
       <div style={{marginTop:20}}>
-        <button className="btn-primary" onClick={onHome}>🏠 Back to Home</button>
+        <button className="btn-primary" onClick={onHome}>Back to Home</button>
       </div>
     </div>
   );
@@ -3142,14 +3135,18 @@ function App() {
   const [lastResult,setLastResult] = React.useState(null);
   const [history,setHistory] = React.useState(saved.history || []);
   const [questCompleted,setQuestCompleted] = React.useState(saved.questCompleted || {});
-  const [robuxPerGem,setRobuxPerGem] = React.useState(saved.robuxPerGem || 1);
+  const [totalTaskMinutes,setTotalTaskMinutes] = React.useState(saved.totalTaskMinutes || 0);
   const [pendingQuestKey,setPendingQuestKey] = React.useState(null);
+  const activityStartRef = React.useRef(null);
 
-  React.useEffect(() => { saveState({gems, history, questCompleted, robuxPerGem}); }, [gems, history, questCompleted, robuxPerGem]);
+  React.useEffect(() => { saveState({gems, history, questCompleted, totalTaskMinutes}); }, [gems, history, questCompleted, totalTaskMinutes]);
+
+  const robux = Math.floor(totalTaskMinutes / 30);
 
   function goHome() { setScreen('home'); setCategory(null); setCurrentItem(null); }
 
   function pickCategory(cat) {
+    activityStartRef.current = Date.now();
     setCategory(cat);
     if (cat === 'stories') setScreen('storyPicker');
     else if (cat === 'science') setScreen('sciencePicker');
@@ -3196,38 +3193,36 @@ function App() {
   }
 
   function finishActivity(score, total, label) {
-    // Quality gate: must get at least 90% to earn gems
     const pct = total > 0 ? score / total : 0;
-    // Flat 2 gems per pass - prevents score inflation from long quizzes
     const earned = pct >= 0.9 ? 2 : 0;
     const passed = pct >= 0.9;
 
+    // Time tracking: cap each activity at 15 min to prevent idle inflation
+    const elapsedMs = activityStartRef.current ? Date.now() - activityStartRef.current : 0;
+    const elapsedMin = Math.min(Math.round(elapsedMs / 60000), 15);
+    activityStartRef.current = null;
+    const newTotalMin = totalTaskMinutes + elapsedMin;
+    setTotalTaskMinutes(newTotalMin);
+
     const newGems = gems + earned;
     setGems(newGems);
-    setLastResult({score, total, earned, passed});
-    const newHistory = [...history, {label: label || 'Activity', subject: category || 'general', score, total, earned, when:Date.now()}].slice(-100);
+    setLastResult({score, total, earned, passed, minutesAdded: elapsedMin, totalMinutes: newTotalMin});
+    const newHistory = [...history, {label: label || 'Activity', subject: category || 'general', score, total, earned, minutes: elapsedMin, when:Date.now()}].slice(-100);
     setHistory(newHistory);
     if (pendingQuestKey && passed) {
       setQuestCompleted(qc => ({...qc, [pendingQuestKey]: true}));
     }
     setPendingQuestKey(null);
-    // Track to Supabase
     trackActivity(label || 'Activity', category || 'quiz', score, total);
     if (earned > 0) syncStarStats(newGems, newHistory.length);
     setScreen('result');
   }
 
-  function setRate() {
-    const v = prompt('How many Robux per 💎 gem?', String(robuxPerGem));
-    if (v !== null && !isNaN(parseInt(v)) && parseInt(v) >= 0) {
-      setRobuxPerGem(parseInt(v));
-    }
-  }
-
   function resetProgress() {
     if (confirm('Reset all your gems and progress?')) {
       setGems(0); setHistory([]); setQuestCompleted({});
-      saveState({gems:0, history:[], questCompleted:{}, robuxPerGem});
+      setTotalTaskMinutes(0);
+      saveState({gems:0, history:[], questCompleted:{}, totalTaskMinutes:0});
     }
   }
 
@@ -3246,11 +3241,11 @@ function App() {
   return (
     <div style={{minHeight:'100vh',paddingBottom:40}}>
       {screen === 'welcome' && <Welcome gems={gems} onStart={() => setScreen('home')}/>}
-      {screen === 'home' && <Home gems={gems} robux={gems*robuxPerGem} onPick={pickCategory} onReset={resetProgress}/>}
-      {screen === 'quests' && <DailyQuests completed={questCompleted} gems={gems} robuxPerGem={robuxPerGem}
+      {screen === 'home' && <Home gems={gems} robux={robux} onPick={pickCategory} onReset={resetProgress}/>}
+      {screen === 'quests' && <DailyQuests completed={questCompleted} gems={gems} robux={robux}
         onLaunch={launchQuestActivity} onHome={goHome}/>}
       {screen === 'report' && <ReportScreen gems={gems} completed={questCompleted} history={history}
-        robuxPerGem={robuxPerGem} onHome={goHome} onSetRate={setRate}/>}
+        totalTaskMinutes={totalTaskMinutes} robux={robux} onHome={goHome}/>}
       {screen === 'writing' && <WritingPrompts gems={gems} onHome={goHome}/>}
       {screen === 'drawing' && <DrawingIdeas gems={gems} onHome={goHome}/>}
       {screen === 'timesSpeed' && <TimesSpeed gems={gems} onHome={goHome}
@@ -3382,7 +3377,7 @@ function App() {
         onDone={score => finishActivity(score, worldMap[currentItem].qs.length, "🌐 " + worldMap[currentItem].title)}/>}
 
       {/* Result */}
-      {screen === 'result' && lastResult && <Result score={lastResult.score} total={lastResult.total} earned={lastResult.earned} passed={lastResult.passed} gems={gems} robuxTarget={400} onHome={goHome}/>}
+      {screen === 'result' && lastResult && <Result score={lastResult.score} total={lastResult.total} earned={lastResult.earned} passed={lastResult.passed} minutesAdded={lastResult.minutesAdded} totalMinutes={lastResult.totalMinutes} robux={robux} onHome={goHome}/>}
     </div>
   );
 }
