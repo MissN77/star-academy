@@ -111,8 +111,8 @@ function saveState(s) {
 }
 
 // ── Supabase (fire-and-forget tracking) ────────────────────────────────────
-const SB_URL = 'https://bdlrmtcrjenoyullctsw.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkbHJtdGNyamVub3l1bGxjdHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDM1NDAsImV4cCI6MjA5MDM3OTU0MH0.Wb1aEGF7U44LzJEiej1qJjRN_1r0S_fwCYJroViYfoc';
+const SB_URL = 'https://pimhwskthibxkpfjlkfu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpbWh3c2t0aGlieGtwZmpsa2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDEzNjksImV4cCI6MjA5NzIxNzM2OX0.urlGrk-K0o7H3Us3sOizvZ4-S8SAB2uULHAGGYro4RY';
 const SB_HEADERS = {'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'};
 
 async function sbPost(table, body) {
@@ -134,16 +134,16 @@ function trackActivity(label, type, score, total) {
 
 function syncStarStats(gems, totalActivities) {
   const today = new Date().toISOString().slice(0,10);
-  fetch(`${SB_URL}/rest/v1/child_stats?child_name=eq.Ava&app=eq.star-academy`, {
+  fetch(`${SB_URL}/rest/v1/star_stats?child_name=eq.Ava`, {
     method:'GET', headers:SB_HEADERS
   }).then(r=>r.json()).then(data => {
     if (data && data.length > 0) {
-      fetch(`${SB_URL}/rest/v1/child_stats?child_name=eq.Ava&app=eq.star-academy`, {
+      fetch(`${SB_URL}/rest/v1/star_stats?child_name=eq.Ava`, {
         method:'PATCH', headers:SB_HEADERS,
         body:JSON.stringify({total_gems:gems,total_activities:totalActivities,last_active:today,updated_at:new Date().toISOString()})
       }).catch(()=>{});
     } else {
-      sbPost('child_stats', {child_name:'Ava',app:'star-academy',total_gems:gems,total_activities:totalActivities,last_active:today});
+      sbPost('star_stats', {child_name:'Ava',total_gems:gems,total_activities:totalActivities,last_active:today});
     }
   }).catch(()=>{});
 }
@@ -377,7 +377,7 @@ Between Number 12 and Number 14, where the day before there had been a brick wal
 Zoe looked around. Nobody else seemed to notice.
 She checked her watch. She had four minutes before school.
 She tried the handle. The door opened. Behind it was not a house, but a small library. Every book on every shelf had her name on the spine.
-Zoe ZOE zoe Zoe — in every colour, every font, every size.
+Zoe ZOE zoe Zoe - in every colour, every font, every size.
 A very small librarian peered over her glasses. "Ah," she said. "We've been waiting. Would you like to borrow your own story?"
 Zoe took one book, bookmarked the page, and promised to return.
 She was exactly one minute late for school. She told her teacher she had been reading. It was completely true.`,
@@ -1329,6 +1329,318 @@ const SPELLING_TESTS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ENGLISH (synonyms, antonyms, homophones, prefixes, compound words)
+// ═══════════════════════════════════════════════════════════════════════════
+const ENGLISH_LESSONS = [
+  { id:'synonyms', title:'Synonyms', icon:'🔤', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)',
+    teach:`A **synonym** is a word that means the same (or nearly the same) as another word.
+Knowing synonyms makes your writing more interesting - use them instead of repeating the same word!
+
+**big** → huge, enormous, giant, massive
+**happy** → joyful, cheerful, delighted, pleased
+**sad** → upset, gloomy, miserable, unhappy
+**fast** → quick, speedy, rapid, swift
+**small** → tiny, little, miniature, petite
+**angry** → furious, cross, annoyed, irritated
+**beautiful** → gorgeous, lovely, stunning, pretty
+**walk** → stroll, march, trudge, stride`,
+    qs:[
+      {q:'Which is a synonym for BIG?',opts:['tiny','enormous','sad','quick'],ans:1,why:'Enormous means very big! 🐘'},
+      {q:'Which means the same as HAPPY?',opts:['gloomy','angry','cheerful','furious'],ans:2,why:'Cheerful and happy both mean feeling good! 😊'},
+      {q:'A synonym for FAST is…?',opts:['slow','tiny','quick','sad'],ans:2,why:'Quick and fast mean the same! ⚡'},
+      {q:'Which is a synonym for SMALL?',opts:['huge','tiny','swift','cross'],ans:1,why:'Tiny and small both mean not big! 🐭'},
+      {q:'A synonym for ANGRY is…?',opts:['pleased','joyful','furious','cheerful'],ans:2,why:'Furious means very angry! 😠'},
+      {q:'Which word means the same as BEAUTIFUL?',opts:['ugly','plain','gorgeous','miserable'],ans:2,why:'Gorgeous and beautiful mean the same! ✨'},
+      {q:'Which is a synonym for WALK?',opts:['swim','fly','stroll','sit'],ans:2,why:'Stroll is a gentle walk! 🚶'},
+    ]},
+  { id:'antonyms', title:'Antonyms', icon:'↔️', grad:'linear-gradient(135deg,#ec4899,#f43f5e)',
+    teach:`An **antonym** is a word that means the **opposite** of another word.
+
+hot ↔ **cold** · big ↔ **small** · happy ↔ **sad**
+fast ↔ **slow** · dark ↔ **light** · up ↔ **down**
+soft ↔ **hard** · wet ↔ **dry** · old ↔ **new**
+brave ↔ **cowardly** · kind ↔ **unkind** · begin ↔ **end**
+love ↔ **hate** · day ↔ **night** · loud ↔ **quiet**
+empty ↔ **full** · ancient ↔ **modern** · push ↔ **pull**
+
+Try using antonyms in your writing to show contrast!`,
+    qs:[
+      {q:'Antonym of HOT?',opts:['warm','cold','boiling','cool'],ans:1,why:'Hot and cold are opposites! 🧊'},
+      {q:'Opposite of HAPPY?',opts:['joyful','cheerful','sad','pleased'],ans:2,why:'Happy and sad are opposites! 😢'},
+      {q:'Antonym of DARK?',opts:['bright','light','dim','shadow'],ans:1,why:'Dark and light are opposites! 💡'},
+      {q:'Opposite of BEGIN?',opts:['start','open','end','continue'],ans:2,why:'Begin and end are opposites! 🔚'},
+      {q:'Antonym of BRAVE?',opts:['kind','strong','cowardly','bold'],ans:2,why:'Brave and cowardly are opposites! 🦁'},
+      {q:'Opposite of ANCIENT?',opts:['old','antique','crumbling','modern'],ans:3,why:'Ancient means very old, modern means new! 🏙️'},
+      {q:'Antonym of EMPTY?',opts:['hollow','bare','open','full'],ans:3,why:'Empty and full are opposites! 🪣'},
+    ]},
+  { id:'homophones', title:'Homophones', icon:'👂', grad:'linear-gradient(135deg,#8b5cf6,#ec4899)',
+    teach:`**Homophones** are words that **sound the same** but have different spellings and different meanings.
+
+**to / too / two** - I walked **to** school. Me **too**! I have **two** cats.
+**there / their / they're** - Put it **there**. It is **their** house. **They're** coming!
+**here / hear** - Come **here**. Can you **hear** that?
+**see / sea** - I can **see** the **sea**!
+**right / write** - Turn **right**. **Write** your name.
+**bare / bear** - The tree is **bare** in winter. The **bear** is sleeping.
+**by / buy / bye** - Stand **by** me. I will **buy** it. **Bye** then!
+**flour / flower** - Bake with **flour**. Pick a **flower**.`,
+    qs:[
+      {q:'"I have ___ sisters." Which spelling?',opts:['to','too','two','tew'],ans:2,why:'Two is the number 2! ✌️'},
+      {q:'"Put it over ___." Which word?',opts:['their','they\'re','there','thair'],ans:2,why:'There refers to a place! 👇'},
+      {q:'"Can you ___ me?" (listening)',opts:['here','hear','heer','heir'],ans:1,why:'Hear is about listening with your ears! 👂'},
+      {q:'"Turn ___ at the corner."',opts:['write','rite','wright','right'],ans:3,why:'Right is a direction! ➡️'},
+      {q:'"The ___ is sleeping in the cave."',opts:['bare','beer','bear','bair'],ans:2,why:'Bear is the animal! 🐻'},
+      {q:'"Bake with ___ to make bread."',opts:['flower','flour','floor','flair'],ans:1,why:'Flour is used in cooking! 🍞'},
+      {q:'"___ house has a red door." (belonging to them)',opts:['There','They\'re','Their','Thair'],ans:2,why:'Their shows belonging! 🏠'},
+    ]},
+  { id:'prefixes', title:'Prefixes & Suffixes', icon:'🔑', grad:'linear-gradient(135deg,#f59e0b,#10b981)',
+    teach:`A **prefix** goes at the START of a word and changes its meaning.
+
+**un-** means NOT: **un**happy · **un**kind · **un**tidy · **un**lock · **un**fair
+**re-** means AGAIN: **re**do · **re**write · **re**read · **re**turn · **re**build
+**dis-** means NOT or OPPOSITE: **dis**like · **dis**appear · **dis**agree · **dis**honest
+**pre-** means BEFORE: **pre**view · **pre**school · **pre**heat
+
+A **suffix** goes at the END of a word.
+**-ful** means FULL OF: help**ful** · care**ful** · wonder**ful**
+**-less** means WITHOUT: hope**less** · care**less** · use**less**
+**-ly** makes an adverb: quick**ly** · loud**ly** · happi**ly**`,
+    qs:[
+      {q:'"Unhappy" means…?',opts:['very happy','not happy','a little happy','happy again'],ans:1,why:'Un- means NOT! 😞'},
+      {q:'"Rewrite" means…?',opts:['write slowly','never write','write again','write big'],ans:2,why:'Re- means AGAIN! ✍️'},
+      {q:'The suffix -ful means…?',opts:['without','full of','not','again'],ans:1,why:'Helpful = full of help! 💪'},
+      {q:'"Careless" means…?',opts:['very careful','full of care','without care','caring again'],ans:2,why:'-less means WITHOUT! 😬'},
+      {q:'"Quickly" - what does -ly do?',opts:['Makes it a noun','Makes it opposite','Makes it an adverb','Adds meaning NOT'],ans:2,why:'-ly turns adjectives into adverbs! 💨'},
+      {q:'Which prefix means BEFORE?',opts:['un-','re-','dis-','pre-'],ans:3,why:'Pre- means before - like preview! 🎬'},
+      {q:'"Disagree" means…?',opts:['agree completely','agree slowly','not agree','agree again'],ans:2,why:'Dis- makes the opposite! 🙅'},
+    ]},
+  { id:'compound', title:'Compound Words', icon:'🔗', grad:'linear-gradient(135deg,#10b981,#06b6d4)',
+    teach:`A **compound word** is made by joining two smaller words together to make a new word.
+
+sun + flower = **sunflower** 🌻
+rain + bow = **rainbow** 🌈
+book + case = **bookcase** 📚
+foot + ball = **football** ⚽
+butter + fly = **butterfly** 🦋
+cup + cake = **cupcake** 🧁
+sea + shell = **seashell** 🐚
+tooth + brush = **toothbrush** 🦷
+star + fish = **starfish** ⭐
+over + night = **overnight** 🌙
+shoe + lace = **shoelace** 👟
+water + fall = **waterfall** 💧
+
+Look for the two words hiding inside compound words!`,
+    qs:[
+      {q:'SUN + FLOWER = ?',opts:['sunlight','sunflower','sunshine','sundrop'],ans:1,why:'Sunflower! 🌻'},
+      {q:'Which is a compound word?',opts:['happy','jumping','rainbow','quickly'],ans:2,why:'Rainbow = rain + bow! 🌈'},
+      {q:'BUTTER + FLY = ?',opts:['buttercup','butterfly','buttermilk','butterscotch'],ans:1,why:'Butterfly! 🦋'},
+      {q:'What two words make FOOTBALL?',opts:['foot + all','for + ball','foot + ball','fun + ball'],ans:2,why:'Foot + ball! ⚽'},
+      {q:'TOOTH + BRUSH = ?',opts:['toothpaste','toothache','toothbrush','toothfairy'],ans:2,why:'Toothbrush! 🦷'},
+      {q:'Which two words make STARFISH?',opts:['sta + rfish','star + fish','st + arfish','stars + ish'],ans:1,why:'Star + fish! ⭐🐟'},
+      {q:'WATER + FALL = ?',opts:['waterpipe','waterfall','waterbed','waterhole'],ans:1,why:'Waterfall! 💧'},
+    ]},
+  { id:'sentences', title:'Fill the Gap', icon:'✏️', grad:'linear-gradient(135deg,#f59e0b,#ec4899)',
+    teach:`**Fill the gap** means choosing the best word to complete a sentence.
+
+Read the whole sentence carefully, then think: which word fits best?
+
+👉 The dog wagged its tail because it was ___.
+→ **happy** (dogs wag when happy!)
+
+👉 She ran very ___ and won the race.
+→ **quickly** (you need to be quick to win!)
+
+👉 The ice cream began to ___ in the sun.
+→ **melt** (heat melts ice cream!)
+
+**Tips:**
+- Read the whole sentence first
+- Say it out loud with each option
+- Pick the one that sounds right and makes sense`,
+    qs: SENTENCE_FILL.slice().sort(()=>Math.random()-0.5).slice(0,10) },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SENTENCE FILL (Ava - Year 2/3 level, fill the blank)
+// ═══════════════════════════════════════════════════════════════════════════
+const SENTENCE_FILL = [
+  { q:'The sun was so bright that she needed her ___.', opts:['boots','hat','sunglasses','mittens'], ans:2, why:'Sunglasses protect your eyes from the sun!' },
+  { q:'The dog wagged its tail because it was ___.', opts:['sad','happy','tired','hungry'], ans:1, why:'Dogs wag their tails when they are happy!' },
+  { q:'She ran very ___ and won the race.', opts:['slowly','quietly','quickly','loudly'], ans:2, why:'You have to run quickly to win a race!' },
+  { q:'The elephant is a ___ animal.', opts:['tiny','huge','thin','light'], ans:1, why:'Elephants are the largest land animals!' },
+  { q:'He was very ___ because he had not eaten all day.', opts:['full','thirsty','hungry','tired'], ans:2, why:'Not eating makes you hungry!' },
+  { q:'The baby cried ___ in the night.', opts:['silently','loudly','slowly','quietly'], ans:1, why:'Crying loudly is how babies get attention!' },
+  { q:'She put on her ___ because it was raining.', opts:['swimsuit','coat','shorts','sandals'], ans:1, why:'A coat keeps you dry in the rain!' },
+  { q:'The caterpillar turned into a beautiful ___.', opts:['frog','butterfly','bird','fish'], ans:1, why:'Caterpillars become butterflies!' },
+  { q:'He was very ___ of his little sister and always looked after her.', opts:['jealous','afraid','proud','bored'], ans:2, why:'Being proud means you feel good about someone!' },
+  { q:'The flowers ___ beautifully in the warm sunshine.', opts:['slept','swam','bloomed','melted'], ans:2, why:'Flowers bloom in the sunshine!' },
+  { q:'She whispered so quietly that nobody could ___ her.', opts:['see','hear','touch','smell'], ans:1, why:'Whispering is hard to hear!' },
+  { q:'The ice cream began to ___ in the hot sun.', opts:['freeze','melt','grow','bounce'], ans:1, why:'Heat makes ice cream melt!' },
+  { q:'He felt very ___ after a long day at school.', opts:['energetic','tired','excited','angry'], ans:1, why:'School is hard work!' },
+  { q:'The bird sang a ___ song in the tree.', opts:['noisy','sad','beautiful','boring'], ans:2, why:'Birds are famous for their beautiful songs!' },
+  { q:'She drank a glass of water because she was ___.', opts:['hungry','cold','thirsty','tired'], ans:2, why:'You drink water when you are thirsty!' },
+  { q:'The snail moved very ___ across the path.', opts:['quickly','fast','slowly','noisily'], ans:2, why:'Snails are famous for being slow!' },
+  { q:'He brushed his ___ before going to bed.', opts:['hair','hands','teeth','shoes'], ans:2, why:'We brush our teeth before bed!' },
+  { q:'The cake smelled ___ as it baked in the oven.', opts:['terrible','strange','delicious','odd'], ans:2, why:'Baking cakes makes a delicious smell!' },
+  { q:'She felt very ___ when she scored a goal for her team.', opts:['ashamed','bored','proud','nervous'], ans:2, why:'Scoring a goal makes you feel proud!' },
+  { q:'The kitten played with a ball of ___.', opts:['stone','wool','mud','glass'], ans:1, why:'Kittens love playing with wool!' },
+  { q:'The children were very ___ on Christmas morning.', opts:['grumpy','bored','sad','excited'], ans:3, why:'Christmas morning is so exciting!' },
+  { q:'She put on her ___ so she could swim.', opts:['pyjamas','swimsuit','coat','uniform'], ans:1, why:'You wear a swimsuit to swim!' },
+  { q:'The tree had lost all its ___ in autumn.', opts:['roots','branches','leaves','flowers'], ans:2, why:'Leaves fall from trees in autumn!' },
+  { q:'He was very ___ of speaking in front of the whole school.', opts:['bored','nervous','happy','proud'], ans:1, why:'Speaking in front of everyone can feel scary!' },
+  { q:'The penguin lives in a very ___ place called the Antarctic.', opts:['hot','dry','cold','wet'], ans:2, why:'Penguins live in freezing cold Antarctica!' },
+  { q:'She ___ her hand to answer the teacher\'s question.', opts:['dropped','crossed','raised','folded'], ans:2, why:'We raise our hand in class to answer!' },
+  { q:'The baby deer was very ___ and could barely walk.', opts:['huge','wobbly','fast','fierce'], ans:1, why:'Baby deer are wobbly on their new legs!' },
+  { q:'He looked both ways before crossing the ___.', opts:['playground','road','field','river'], ans:1, why:'Always look both ways before crossing the road!' },
+  { q:'The rainbow appeared in the sky after the ___.', opts:['sunshine','snow','rain','wind'], ans:2, why:'Rainbows appear after rain!' },
+  { q:'She felt a ___ of butterflies in her tummy before the show.', opts:['swarm','flock','flutter','herd'], ans:2, why:'A flutter of butterflies is that nervous feeling!' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MATHS WORD PROBLEMS (4th maths level)
+// ═══════════════════════════════════════════════════════════════════════════
+const MATHS_WORD_PROBLEMS = [
+  { q:'Ava has 24 stickers. She gives 8 to her friend. How many are left?', opts:['14','16','18','20'], ans:1, why:'24 − 8 = 16! ⭐' },
+  { q:'There are 6 bags with 5 apples each. How many apples altogether?', opts:['25','30','35','40'], ans:1, why:'6 × 5 = 30! 🍎' },
+  { q:'A pizza is cut into 8 slices. Ava eats 3. How many slices are left?', opts:['3','4','5','6'], ans:2, why:'8 − 3 = 5 slices! 🍕' },
+  { q:'Mum buys 4 packs of crayons. Each pack has 12. How many crayons?', opts:['36','40','48','52'], ans:2, why:'4 × 12 = 48! 🖍️' },
+  { q:'Ava saves £5 each week. How much does she save in 7 weeks?', opts:['£30','£35','£40','£45'], ans:1, why:'5 × 7 = £35! 💰' },
+  { q:'A book has 100 pages. Ava reads 37. How many pages left?', opts:['53','63','73','77'], ans:1, why:'100 − 37 = 63! 📚' },
+  { q:'3 friends share 15 sweets equally. How many sweets each?', opts:['3','4','5','6'], ans:2, why:'15 ÷ 3 = 5! 🍬' },
+  { q:'A box holds 9 eggs. How many eggs are in 7 boxes?', opts:['54','63','72','81'], ans:1, why:'9 × 7 = 63! 🥚' },
+  { q:'Ava has 50p. She spends 27p. How much money is left?', opts:['13p','23p','27p','33p'], ans:1, why:'50 − 27 = 23p! 💷' },
+  { q:'A cinema has 9 rows of 8 seats. How many seats in total?', opts:['64','72','80','54'], ans:1, why:'9 × 8 = 72! 🎬' },
+  { q:'A train leaves at 9am and the journey takes 2 hours. When does it arrive?', opts:['10am','11am','12pm','1pm'], ans:1, why:'9 + 2 = 11am! 🚂' },
+  { q:'There are 48 children. They split into groups of 6. How many groups?', opts:['6','7','8','9'], ans:2, why:'48 ÷ 6 = 8 groups! 👥' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LANGUAGES (French & Spanish - phrases with TTS read-aloud)
+// ═══════════════════════════════════════════════════════════════════════════
+const FRENCH_PHRASES = [
+  { phrase:'Bonjour', english:'Hello', phonetic:'bon-ZHOOR', cat:'Greetings' },
+  { phrase:'Au revoir', english:'Goodbye', phonetic:'oh reh-VWAR', cat:'Greetings' },
+  { phrase:"S'il vous plaît", english:'Please', phonetic:'seel voo PLAY', cat:'Manners' },
+  { phrase:'Merci', english:'Thank you', phonetic:'mair-SEE', cat:'Manners' },
+  { phrase:'De rien', english:"You're welcome", phonetic:'duh ree-EN', cat:'Manners' },
+  { phrase:'Oui', english:'Yes', phonetic:'WEE', cat:'Basics' },
+  { phrase:'Non', english:'No', phonetic:'NOH', cat:'Basics' },
+  { phrase:"Je m'appelle Ava", english:'My name is Ava', phonetic:"zhuh map-ELL", cat:'About Me' },
+  { phrase:"J'ai sept ans", english:'I am seven years old', phonetic:'zhay set ON', cat:'About Me' },
+  { phrase:'Comment ça va?', english:'How are you?', phonetic:'kom-ON sa VA', cat:'Greetings' },
+  { phrase:'Ça va bien', english:"I'm fine", phonetic:'sa VA bee-EN', cat:'Greetings' },
+  { phrase:'Rouge', english:'Red', phonetic:'ROOZH', cat:'Colours' },
+  { phrase:'Bleu', english:'Blue', phonetic:'BLUH', cat:'Colours' },
+  { phrase:'Vert', english:'Green', phonetic:'VAIR', cat:'Colours' },
+  { phrase:'Jaune', english:'Yellow', phonetic:'ZHOHN', cat:'Colours' },
+  { phrase:'Chat', english:'Cat', phonetic:'SHA', cat:'Animals' },
+  { phrase:'Chien', english:'Dog', phonetic:'shee-EN', cat:'Animals' },
+  { phrase:'Un, deux, trois', english:'One, two, three', phonetic:'un, DUH, TRWA', cat:'Numbers' },
+  { phrase:'Bonne nuit', english:'Goodnight', phonetic:'bon NWEE', cat:'Greetings' },
+  { phrase:"J'aime", english:'I love / I like', phonetic:'ZHEM', cat:'Basics' },
+];
+const SPANISH_PHRASES = [
+  { phrase:'Hola', english:'Hello', phonetic:'OH-la', cat:'Greetings' },
+  { phrase:'Adiós', english:'Goodbye', phonetic:'ah-dee-OHS', cat:'Greetings' },
+  { phrase:'Por favor', english:'Please', phonetic:'por fah-VOR', cat:'Manners' },
+  { phrase:'Gracias', english:'Thank you', phonetic:'GRA-see-as', cat:'Manners' },
+  { phrase:'De nada', english:"You're welcome", phonetic:'deh NA-da', cat:'Manners' },
+  { phrase:'Sí', english:'Yes', phonetic:'SEE', cat:'Basics' },
+  { phrase:'No', english:'No', phonetic:'NOH', cat:'Basics' },
+  { phrase:'Me llamo Ava', english:'My name is Ava', phonetic:'meh YA-mo', cat:'About Me' },
+  { phrase:'Tengo siete años', english:'I am seven years old', phonetic:'TEN-go see-EH-teh AN-yos', cat:'About Me' },
+  { phrase:'¿Cómo estás?', english:'How are you?', phonetic:'KO-mo es-TAS', cat:'Greetings' },
+  { phrase:'Estoy bien', english:"I'm fine", phonetic:'es-TOY bee-EN', cat:'Greetings' },
+  { phrase:'Rojo', english:'Red', phonetic:'RO-ho', cat:'Colours' },
+  { phrase:'Azul', english:'Blue', phonetic:'a-ZOOL', cat:'Colours' },
+  { phrase:'Verde', english:'Green', phonetic:'VAIR-deh', cat:'Colours' },
+  { phrase:'Amarillo', english:'Yellow', phonetic:'a-ma-REE-yo', cat:'Colours' },
+  { phrase:'Gato', english:'Cat', phonetic:'GA-to', cat:'Animals' },
+  { phrase:'Perro', english:'Dog', phonetic:'PEH-rro', cat:'Animals' },
+  { phrase:'Uno, dos, tres', english:'One, two, three', phonetic:'OO-no, DOS, TRES', cat:'Numbers' },
+  { phrase:'Buenas noches', english:'Goodnight', phonetic:'BWAY-nas NO-ches', cat:'Greetings' },
+  { phrase:'Me gusta', english:'I like', phonetic:'meh GOOS-ta', cat:'Basics' },
+];
+const LANGUAGE_SETS = [
+  { id:'french', title:'French Phrases', icon:'🇫🇷', grad:'linear-gradient(135deg,#1e40af,#ef4444)', phrases:FRENCH_PHRASES, lang:'fr-FR' },
+  { id:'spanish', title:'Spanish Phrases', icon:'🇪🇸', grad:'linear-gradient(135deg,#dc2626,#f59e0b)', phrases:SPANISH_PHRASES, lang:'es-ES' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WORLD KNOWLEDGE
+// ═══════════════════════════════════════════════════════════════════════════
+const WORLD_LESSONS = [
+  { id:'landmarks', title:'Famous Landmarks', icon:'🗼', grad:'linear-gradient(135deg,#f59e0b,#ef4444)',
+    teach:`The world has amazing buildings and places!
+
+The **Eiffel Tower** is in Paris, France. It is made of iron and stands 330 metres tall.
+The **Great Wall of China** stretches over 13,000 miles across China. It was built to protect the country.
+The **Colosseum** is in Rome, Italy. It is an ancient arena where gladiators once fought.
+**Big Ben** is a famous clock tower in London, England.
+The **Taj Mahal** is in India - a white marble palace built by an emperor for his wife.
+The **Sydney Opera House** looks like giant white shells on the harbour in Sydney, Australia.
+The **Pyramids of Giza** are in Egypt. The Great Pyramid is one of the Seven Wonders of the World.`,
+    qs:[
+      {q:'The Eiffel Tower is in which city?',opts:['Rome','London','Paris','Berlin'],ans:2,why:'Paris, France! 🗼'},
+      {q:'Big Ben is in which country?',opts:['France','England','Italy','Spain'],ans:1,why:'London, England! 🕐'},
+      {q:'The Taj Mahal is in…?',opts:['China','Egypt','India','Brazil'],ans:2,why:'India! 🏯'},
+      {q:'The Great Wall stretches across…?',opts:['India','Egypt','Australia','China'],ans:3,why:'China! 🐉'},
+      {q:'The Sydney Opera House looks like…?',opts:['Giant shells','A pyramid','A crown','A rocket'],ans:0,why:'Giant white shells on a harbour! 🦪'},
+    ]},
+  { id:'records', title:'World Records', icon:'🏆', grad:'linear-gradient(135deg,#10b981,#06b6d4)',
+    teach:`The world has some incredible records!
+
+The **longest river** is the **Nile** in Africa at 6,650 km.
+The **highest mountain** is **Mount Everest** in the Himalayas at 8,849 m.
+The **biggest ocean** is the **Pacific Ocean** - it covers over a third of Earth.
+The **largest country** by size is **Russia**.
+The **smallest country** is **Vatican City** inside Rome - smaller than a park!
+The **largest animal** is the **blue whale** - up to 30 metres long.
+The **fastest land animal** is the **cheetah** - up to 120 km/h.
+The **tallest animal** is the **giraffe** - up to 6 metres tall.`,
+    qs:[
+      {q:'The longest river in the world is…?',opts:['Amazon','Thames','Nile','Ganges'],ans:2,why:'The River Nile! 🏞️'},
+      {q:'The highest mountain is…?',opts:['Ben Nevis','Mount Everest','Kilimanjaro','K2'],ans:1,why:'Mount Everest! 🏔️'},
+      {q:'The biggest ocean is…?',opts:['Atlantic','Indian','Arctic','Pacific'],ans:3,why:'The Pacific Ocean! 🌊'},
+      {q:'The fastest land animal is the…?',opts:['Lion','Horse','Cheetah','Eagle'],ans:2,why:'Cheetah at 120 km/h! 🐆'},
+      {q:'The smallest country in the world is…?',opts:['Monaco','Vatican City','San Marino','Liechtenstein'],ans:1,why:'Vatican City, inside Rome! ⛪'},
+    ]},
+  { id:'celebrations', title:'World Celebrations', icon:'🎉', grad:'linear-gradient(135deg,#ec4899,#8b5cf6)',
+    teach:`Different countries have wonderful celebrations and traditions!
+
+**Diwali** - The Festival of Lights! Celebrated in India and by Hindus worldwide. People light diyas (candles) and set off fireworks.
+**Chinese New Year** - Celebrated with parades, dragon dances, red envelopes and fireworks.
+**Eid al-Fitr** - A special celebration after Ramadan. Families share food and give gifts.
+**Carnival** - Celebrated in Brazil with colourful costumes, samba dancing and huge parades.
+**Hanukkah** - The Jewish Festival of Lights. A menorah candle is lit for 8 nights.
+**Holi** - The Indian Festival of Colours! People throw colourful powder and water.`,
+    qs:[
+      {q:'Diwali is known as…?',opts:['The Water Festival','The Festival of Lights','The Fire Festival','The Star Festival'],ans:1,why:'Festival of Lights! 🪔'},
+      {q:'Where is the biggest Carnival celebration?',opts:['USA','India','Brazil','Spain'],ans:2,why:'Brazil! 🇧🇷'},
+      {q:'Holi is the festival of…?',opts:['Stars','Music','Colours','Water'],ans:2,why:'Festival of Colours! 🌈'},
+      {q:'Hanukkah lasts for how many nights?',opts:['4','6','7','8'],ans:3,why:'8 nights of candles! 🕎'},
+      {q:'Red envelopes are given at which celebration?',opts:['Diwali','Christmas','Chinese New Year','Eid'],ans:2,why:'Chinese New Year! 🧧'},
+    ]},
+  { id:'explorers', title:'Great Explorers', icon:'🧭', grad:'linear-gradient(135deg,#3b82f6,#10b981)',
+    teach:`Brave explorers have discovered amazing things!
+
+**Neil Armstrong** (1969) - First person to walk on the Moon. He said: "One small step for man, one giant leap for mankind."
+**Yuri Gagarin** (1961) - First human to travel into space, on a spacecraft called Vostok 1. He was from Russia.
+**Amelia Earhart** - First woman to fly solo across the Atlantic Ocean.
+**Christopher Columbus** (1492) - Sailed west from Spain and landed in the Americas.
+**Ibn Battuta** - A great explorer from Morocco who travelled 75,000 miles across Africa and Asia in the 1300s.
+**Ernest Shackleton** - British explorer who led an incredible survival journey in Antarctica.`,
+    qs:[
+      {q:'Who was the first person to walk on the Moon?',opts:['Yuri Gagarin','Neil Armstrong','Amelia Earhart','Christopher Columbus'],ans:1,why:'Neil Armstrong, 1969! 🌕'},
+      {q:'Yuri Gagarin was the first human to…?',opts:['Climb Everest','Walk on the Moon','Travel into space','Cross the Atlantic'],ans:2,why:'First in space, 1961! 🚀'},
+      {q:'Amelia Earhart was famous for…?',opts:['Sailing to America','Flying solo across the Atlantic','Walking to the South Pole','Climbing the highest mountain'],ans:1,why:'First woman to fly across the Atlantic! ✈️'},
+      {q:'Christopher Columbus sailed from…?',opts:['England','France','Portugal','Spain'],ans:3,why:'He sailed from Spain! 🇪🇸'},
+      {q:'Which explorer travelled 75,000 miles across Africa and Asia?',opts:['Ibn Battuta','Shackleton','Columbus','Earhart'],ans:0,why:'Ibn Battuta from Morocco! 🗺️'},
+    ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ODD ONE OUT
 // ═══════════════════════════════════════════════════════════════════════════
 const ODD_PUZZLES = [
@@ -1720,8 +2032,9 @@ function Home({ gems, onPick, onReset, robux }) {
     { id:'match', title:'Matching', desc:'Match the pairs', icon:'🎴', grad:'linear-gradient(135deg,#10b981,#8b5cf6)', count:MATCH_SETS.length },
     { id:'short', title:'Short Answer', desc:'Type the answer', icon:'💭', grad:'linear-gradient(135deg,#3b82f6,#10b981)', count:SHORT_ANSWER.length },
     { id:'prep', title:'11+ Prep', desc:'Brain stretchers', icon:'🎓', grad:'linear-gradient(135deg,#6366f1,#8b5cf6)', count:PREP_QUESTIONS.length },
-    { id:'assessments', title:'Maths Tests', desc:'Term assessments', icon:'📋', grad:'linear-gradient(135deg,#1A8A7D,#1B4D5C)', count:4 },
-    { id:'piano', title:'Piano', desc:'Daily practice', icon:'🎹', grad:'linear-gradient(135deg,#1a0533,#ec4899)', count:1 },
+    { id:'english', title:'English', desc:'Synonyms, antonyms & more', icon:'🔤', grad:'linear-gradient(135deg,#ec4899,#8b5cf6)', count:ENGLISH_LESSONS.length },
+    { id:'language', title:'Languages', desc:'French & Spanish phrases', icon:'🗣️', grad:'linear-gradient(135deg,#1e40af,#dc2626)', count:LANGUAGE_SETS.length },
+    { id:'world', title:'World Knowledge', desc:'Amazing facts & places', icon:'🌐', grad:'linear-gradient(135deg,#059669,#0891b2)', count:WORLD_LESSONS.length },
   ];
   return (
     <div className="slide-in" style={{padding:'10px 20px 40px',maxWidth:720,margin:'0 auto'}}>
@@ -1900,18 +2213,9 @@ function SpellingTest({ test, onDone, onHome, gems }) {
 
   function speak(w) {
     try {
-      window.speechSynthesis.cancel();
-      setTimeout(() => {
-        const u = new SpeechSynthesisUtterance(w);
-        u.rate = 0.45;
-        u.pitch = 1.0;
-        u.lang = 'en-GB';
-        // Try to pick a British English voice
-        const voices = window.speechSynthesis.getVoices();
-        const brit = voices.find(v => v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en'));
-        if (brit) u.voice = brit;
-        window.speechSynthesis.speak(u);
-      }, 150);
+      const u = new SpeechSynthesisUtterance(w);
+      u.rate = 0.55; u.lang = 'en-GB';
+      window.speechSynthesis.speak(u);
     } catch(e) {}
   }
 
@@ -2176,8 +2480,8 @@ function MathsSection({ onDone, onHome, gems }) {
   const [score,setScore] = React.useState(0);
   const [done,setDone] = React.useState(false);
 
-  const qs = tier==='train'?MATHS_TRAIN : tier==='practise'?MATHS_PRACTISE : MATHS_TEST;
-  const label = {train:'🚂 Train',practise:'📝 Practise',test:'🏆 Test'}[tier];
+  const qs = tier==='train'?MATHS_TRAIN : tier==='practise'?MATHS_PRACTISE : tier==='word'?MATHS_WORD_PROBLEMS : MATHS_TEST;
+  const label = {train:'🚂 Train',practise:'📝 Practise',test:'🏆 Test',word:'📖 Word Problems'}[tier];
 
   function pick(i,e) {
     if (chosen !== null) return;
@@ -2201,7 +2505,7 @@ function MathsSection({ onDone, onHome, gems }) {
         <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
           <p style={{color:'rgba(255,255,255,0.7)',textAlign:'center',marginBottom:20}}>Choose your level. Work up from Train to Test!</p>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            {[{k:'train',l:'🚂 Train',d:'Warm up (10 qs)',c:'#10b981'},{k:'practise',l:'📝 Practise',d:'Build skill (10 qs)',c:'#3b82f6'},{k:'test',l:'🏆 Test',d:'Challenge yourself (10 qs)',c:'#f59e0b'}].map(t => (
+            {[{k:'train',l:'🚂 Train',d:'Warm up (10 qs)',c:'#10b981'},{k:'practise',l:'📝 Practise',d:'Build skill (10 qs)',c:'#3b82f6'},{k:'word',l:'📖 Word Problems',d:'Story maths (12 qs)',c:'#ec4899'},{k:'test',l:'🏆 Test',d:'Challenge yourself (10 qs)',c:'#f59e0b'}].map(t => (
               <button key={t.k} className="card cat-card" onClick={() => setTier(t.k)}
                 style={{padding:18,background:`linear-gradient(135deg,${t.c}33,${t.c}22)`,border:`1px solid ${t.c}66`}}>
                 <div style={{fontSize:'1.4rem',fontWeight:800,marginBottom:4}}>{t.l}</div>
@@ -2472,6 +2776,116 @@ function TimesSpeed({ onDone, onHome, gems }) {
   );
 }
 
+// ── Language Lesson (French / Spanish with TTS) ────────────────────────────
+function LanguageLearn({ set, onDone, onHome, gems }) {
+  const [mode, setMode] = React.useState('study');
+  const [page, setPage] = React.useState(0);
+  const [qi, setQi] = React.useState(0);
+  const [chosen, setChosen] = React.useState(null);
+  const [score, setScore] = React.useState(0);
+  const phrases = set.phrases;
+
+  function speak(text) {
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = set.lang; u.rate = 0.75;
+      window.speechSynthesis.speak(u);
+    } catch(e) {}
+  }
+
+  const [quizQs] = React.useState(() => {
+    const pool = [...phrases].sort(() => Math.random()-0.5).slice(0, 10);
+    return pool.map(correct => {
+      const others = phrases.filter(p => p.phrase !== correct.phrase).sort(() => Math.random()-0.5).slice(0,3);
+      const opts = [correct, ...others].sort(() => Math.random()-0.5);
+      return { english:correct.english, opts:opts.map(o=>o.phrase), ans:opts.indexOf(correct),
+        why:`${correct.phrase} - say it: ${correct.phonetic} 🗣️`, speak:correct.phrase };
+    });
+  });
+
+  if (mode === 'study') {
+    const p = phrases[page];
+    return (
+      <div>
+        <Header gems={gems} onHome={onHome} title={set.title}/>
+        <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
+          <div style={{textAlign:'center',marginBottom:10,color:'rgba(255,255,255,0.55)',fontSize:'0.82rem'}}>
+            {page+1} / {phrases.length} · {p.cat}
+          </div>
+          <div className="card pop" key={page} style={{padding:32,textAlign:'center',marginBottom:16}}>
+            <div style={{fontSize:'2.6rem',fontWeight:900,color:'#fbbf24',marginBottom:8}}>{p.phrase}</div>
+            <div style={{fontSize:'1.1rem',color:'rgba(255,255,255,0.9)',marginBottom:6}}>{p.english}</div>
+            <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.5)',fontStyle:'italic',marginBottom:20}}>🗣️ Say it: {p.phonetic}</div>
+            <button className="btn-primary" onClick={() => speak(p.phrase)}>🔊 Hear it!</button>
+          </div>
+          <ProgressBar value={page/phrases.length}/>
+          <div style={{display:'flex',gap:10,justifyContent:'center',marginTop:14,marginBottom:20}}>
+            <button className="btn-ghost" onClick={() => setPage((page-1+phrases.length)%phrases.length)}>← Previous</button>
+            <button className="btn-primary" onClick={() => setPage((page+1)%phrases.length)}>Next →</button>
+          </div>
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" style={{background:'linear-gradient(135deg,#10b981,#06b6d4)'}}
+              onClick={() => setMode('quiz')}>Ready to quiz? 🎯</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (qi >= quizQs.length) return null;
+  const q = quizQs[qi];
+
+  function pick(i, e) {
+    if (chosen !== null) return;
+    setChosen(i);
+    if (i === q.ans) { playCorrect(); setScore(s=>s+1); if(e) burstSparkles(e.clientX,e.clientY); speak(q.speak); }
+    else playWrong();
+  }
+  function next() {
+    if (qi+1 < quizQs.length) { setQi(qi+1); setChosen(null); }
+    else { playFanfare(); onDone(score); }
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:520,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>{set.icon} {set.title}</span>
+            <span>Q{qi+1}/{quizQs.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={qi/quizQs.length}/>
+        </div>
+        <div className="card pop" key={qi} style={{padding:22,marginBottom:16}}>
+          <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.6)',marginBottom:6}}>How do you say this in {set.title.split(' ')[0]}?</div>
+          <div style={{fontWeight:800,fontSize:'1.2rem',marginBottom:18,color:'#fbbf24'}}>"{q.english}"</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {q.opts.map((opt,i) => (
+              <button key={i} className={`opt-btn${chosen!==null ? i===q.ans?' correct':i===chosen?' wrong':'' : ''}`}
+                onClick={(e) => pick(i,e)}>
+                <span style={{marginRight:8,opacity:0.6}}>{['A','B','C','D'][i]}.</span>{opt}
+              </button>
+            ))}
+          </div>
+          {chosen !== null && (
+            <div style={{marginTop:14,padding:'10px 14px',borderRadius:12,background:chosen===q.ans?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',border:`1px solid ${chosen===q.ans?'#10b981':'#ef4444'}`}}>
+              <div style={{fontWeight:700,marginBottom:4}}>{chosen===q.ans?'🌟 Brilliant!':'💡 Nearly!'}</div>
+              <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.85)'}}>{q.why}</div>
+            </div>
+          )}
+        </div>
+        {chosen !== null && (
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" onClick={next}>{qi+1<quizQs.length?'Next →':'Finish! 🎉'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Daily Quests ───────────────────────────────────────────────────────────
 function DailyQuests({ completed, onLaunch, onHome, gems, robuxPerGem }) {
   const [expandedDay,setExpandedDay] = React.useState(1);
@@ -2529,7 +2943,53 @@ function ReportScreen({ gems, completed, history, robuxPerGem, onHome, onSetRate
   const totalActs = Object.keys(completed).length;
   const today = new Date().toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long'});
   const robux = gems * robuxPerGem;
-  const recent = (history || []).slice(-10).reverse();
+  const recent = (history || []).slice(-12).reverse();
+
+  const SUBJECT_LABELS = {
+    stories:'📖 Reading', maths:'🔢 Maths', science:'🔬 Science',
+    history:'🏛️ History', geography:'🌍 Geography', grammar:'📝 Grammar',
+    spelling:'✏️ Spelling', english:'🔤 English', language:'🗣️ Languages',
+    world:'🌐 World', times:'✖️ Times Tables', prep:'🎓 11+ Prep',
+    re:'🕊️ RE', match:'🎴 Matching', odd:'🔍 Odd One Out',
+    short:'💭 Short Answer', speed:'⚡ Speed Test', general:'🌟 General',
+  };
+  const HELP_TIPS = {
+    stories:'Ask Ava to retell the story in her own words - comprehension sticks better when she narrates.',
+    maths:'Work through the tricky sums on a whiteboard together. Make it a timed game.',
+    science:'Watch a short BBC Bitesize clip together on the topic she found hard.',
+    history:'Draw a simple timeline on paper - pictures help facts stick.',
+    geography:'Find the places together on a real map or globe.',
+    grammar:'Spot nouns, verbs and adjectives together in her reading book tonight.',
+    spelling:"Write the misspelled word 3 times, cover it, write again from memory. Say each letter aloud.",
+    english:"Play 'what\'s the opposite?' or 'find a better word' over dinner.",
+    language:'Practise the phrases in the car - call-and-response works brilliantly.',
+    world:'Use a globe or atlas to find the places she learned about.',
+    times:'Chant times tables on the school run - start with the ones she knows best.',
+    prep:'Try one verbal reasoning puzzle together before bed.',
+  };
+
+  const subjectStats = {};
+  (history || []).forEach(h => {
+    if (!h.total) return;
+    const sub = h.subject || 'general';
+    if (!subjectStats[sub]) subjectStats[sub] = {correct:0, total:0, count:0};
+    subjectStats[sub].correct += h.score || 0;
+    subjectStats[sub].total += h.total;
+    subjectStats[sub].count += 1;
+  });
+  const subjectEntries = Object.entries(subjectStats).filter(([,v]) => v.total > 0)
+    .sort((a,b) => (b[1].correct/b[1].total) - (a[1].correct/a[1].total));
+  const weakSubjects = subjectEntries.filter(([,v]) => v.correct/v.total < 0.7).map(([k]) => k);
+  const strongSubjects = subjectEntries.filter(([,v]) => v.correct/v.total >= 0.85).map(([k]) => k);
+
+  const summaryLines = [`Ava's Star Academy - ${today}`,`${gems} gems · ${(history||[]).length} activities · ${robux} Robux`,'',
+    ...subjectEntries.map(([k,v])=>`${(SUBJECT_LABELS[k]||k).replace(/[^\x20-\x7E]/g,'').trim()}: ${v.correct}/${v.total} (${Math.round(v.correct/v.total*100)}%)`),
+    '','Tips:',
+    ...weakSubjects.slice(0,3).map(k=>`• ${(SUBJECT_LABELS[k]||k).replace(/[^\x20-\x7E]/g,'').trim()}: ${HELP_TIPS[k]||'Practise together at home'}`)
+  ];
+  const mailBody = encodeURIComponent(summaryLines.join('\n'));
+  const mailLink = `mailto:advisoryscience@gmail.com?subject=Ava%20Star%20Academy%20Report&body=${mailBody}`;
+
   return (
     <div>
       <Header gems={gems} onHome={onHome} title="Show Mum"/>
@@ -2537,37 +2997,90 @@ function ReportScreen({ gems, completed, history, robuxPerGem, onHome, onSetRate
         <div className="card" style={{padding:22,marginBottom:16,background:'linear-gradient(135deg,rgba(236,72,153,0.2),rgba(139,92,246,0.2))',textAlign:'center'}}>
           <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.7)'}}>{today}</div>
           <div style={{fontSize:'2.4rem',marginTop:8}}>⭐</div>
-          <div style={{fontSize:'1.4rem',fontWeight:800,marginTop:4}}>My Star Academy Report</div>
+          <div style={{fontSize:'1.4rem',fontWeight:800,marginTop:4}}>Ava's Report Card</div>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
-          <div className="card" style={{padding:16,textAlign:'center'}}>
-            <div style={{fontSize:'1.8rem',fontWeight:900,color:'#fbbf24'}}>{gems}</div>
-            <div style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.65)'}}>💎 Gems</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:14}}>
+          <div className="card" style={{padding:14,textAlign:'center'}}>
+            <div style={{fontSize:'1.6rem',fontWeight:900,color:'#fbbf24'}}>{gems}</div>
+            <div style={{fontSize:'0.7rem',color:'rgba(255,255,255,0.65)'}}>💎 Gems</div>
           </div>
-          <div className="card" style={{padding:16,textAlign:'center'}}>
-            <div style={{fontSize:'1.8rem',fontWeight:900,color:'#10b981'}}>{totalActs}</div>
-            <div style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.65)'}}>Activities Done</div>
+          <div className="card" style={{padding:14,textAlign:'center'}}>
+            <div style={{fontSize:'1.6rem',fontWeight:900,color:'#10b981'}}>{(history||[]).length}</div>
+            <div style={{fontSize:'0.7rem',color:'rgba(255,255,255,0.65)'}}>Activities</div>
+          </div>
+          <div className="card" style={{padding:14,textAlign:'center'}}>
+            <div style={{fontSize:'1.6rem',fontWeight:900,color:'#ec4899'}}>{robux}</div>
+            <div style={{fontSize:'0.7rem',color:'rgba(255,255,255,0.65)'}}>💰 Robux</div>
           </div>
         </div>
-        <div className="card" style={{padding:18,marginBottom:14,textAlign:'center',background:'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(6,182,212,0.2))'}}>
-          <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.75)',marginBottom:4}}>Robux Earned</div>
-          <div style={{fontSize:'2.2rem',fontWeight:900,color:'#10b981'}}>💰 {robux}</div>
-          <div style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.55)',marginTop:4}}>({robuxPerGem} Robux per gem)</div>
-          <button className="btn-ghost" onClick={onSetRate} style={{marginTop:10,fontSize:'0.8rem'}}>⚙️ Change rate (mum)</button>
-        </div>
-        {recent.length > 0 && (
-          <div className="card" style={{padding:16}}>
-            <div style={{fontWeight:700,marginBottom:10}}>Recent Activities</div>
-            {recent.map((h,i) => (
-              <div key={i} style={{padding:'8px 0',borderBottom:i<recent.length-1?'1px solid rgba(255,255,255,0.08)':'none',display:'flex',justifyContent:'space-between',fontSize:'0.88rem'}}>
-                <span style={{flex:1}}>{h.label}</span>
-                <span style={{color:'#fbbf24'}}>+{h.score}💎</span>
+
+        {subjectEntries.length > 0 && (
+          <div className="card" style={{padding:16,marginBottom:14}}>
+            <div style={{fontWeight:700,marginBottom:12}}>Subject Breakdown</div>
+            {subjectEntries.map(([k,v]) => {
+              const pct = Math.round(v.correct/v.total*100);
+              const col = pct>=80?'#10b981':pct>=60?'#fbbf24':'#ef4444';
+              return (
+                <div key={k} style={{marginBottom:10}}>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.84rem',marginBottom:4}}>
+                    <span>{SUBJECT_LABELS[k]||k}</span>
+                    <span style={{color:col,fontWeight:700}}>{pct}% ({v.count} done)</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width:`${pct}%`,background:`linear-gradient(90deg,${col},${col}99)`}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {weakSubjects.length > 0 && (
+          <div className="card" style={{padding:16,marginBottom:14,background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.3)'}}>
+            <div style={{fontWeight:700,marginBottom:10,color:'#ef4444'}}>💡 Ways to Help Ava</div>
+            {weakSubjects.slice(0,3).map(k => (
+              <div key={k} style={{fontSize:'0.84rem',marginBottom:10,paddingBottom:10,borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                <strong style={{color:'#fbbf24'}}>{SUBJECT_LABELS[k]||k}</strong>
+                <div style={{color:'rgba(255,255,255,0.8)',marginTop:3,lineHeight:1.5}}>{HELP_TIPS[k]||'Practise together at home!'}</div>
               </div>
             ))}
           </div>
         )}
-        <div style={{textAlign:'center',marginTop:20,color:'rgba(255,255,255,0.55)',fontSize:'0.82rem'}}>
-          📸 Take a screenshot to show mum!
+
+        {strongSubjects.length > 0 && (
+          <div className="card" style={{padding:14,marginBottom:14,background:'rgba(16,185,129,0.08)',border:'1px solid rgba(16,185,129,0.3)'}}>
+            <div style={{fontWeight:700,marginBottom:6,color:'#10b981'}}>🌟 Ava is brilliant at…</div>
+            <div style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>{strongSubjects.map(k=>SUBJECT_LABELS[k]||k).join(' · ')}</div>
+          </div>
+        )}
+
+        <div className="card" style={{padding:18,marginBottom:14,textAlign:'center',background:'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(6,182,212,0.2))'}}>
+          <div style={{fontSize:'0.85rem',color:'rgba(255,255,255,0.75)',marginBottom:4}}>Robux Earned</div>
+          <div style={{fontSize:'2.2rem',fontWeight:900,color:'#10b981'}}>💰 {robux}</div>
+          <div style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.5)',marginTop:4}}>{robuxPerGem} Robux per gem · 2 gems per passed activity</div>
+          <button className="btn-ghost" onClick={onSetRate} style={{marginTop:10,fontSize:'0.8rem'}}>⚙️ Change Robux rate</button>
+        </div>
+
+        {recent.length > 0 && (
+          <div className="card" style={{padding:16,marginBottom:14}}>
+            <div style={{fontWeight:700,marginBottom:10}}>Recent Activity</div>
+            {recent.map((h,i) => {
+              const pct = h.total>0 ? Math.round(h.score/h.total*100) : null;
+              return (
+                <div key={i} style={{padding:'7px 0',borderBottom:i<recent.length-1?'1px solid rgba(255,255,255,0.07)':'none',display:'flex',justifyContent:'space-between',fontSize:'0.83rem'}}>
+                  <span style={{flex:1}}>{h.label}</span>
+                  <span style={{color:'rgba(255,255,255,0.45)',marginRight:8,fontSize:'0.76rem'}}>{pct!=null?`${pct}%`:''}</span>
+                  <span style={{color:'#fbbf24'}}>+{h.earned||0}💎</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div style={{textAlign:'center',marginTop:6}}>
+          <a href={mailLink} style={{display:'inline-block',padding:'10px 20px',borderRadius:50,background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.25)',color:'#fff',textDecoration:'none',fontSize:'0.88rem',fontWeight:600}}>
+            📧 Email report to Mum
+          </a>
         </div>
       </div>
     </div>
@@ -2656,8 +3169,9 @@ function App() {
     else if (cat === 'drawing') setScreen('drawing');
     else if (cat === 'quests') setScreen('quests');
     else if (cat === 'report') setScreen('report');
-    else if (cat === 'assessments') setScreen('assessments');
-    else if (cat === 'piano') { window.open('https://missn77.github.io/star-academy/piano.html', '_blank'); }
+    else if (cat === 'english') setScreen('englishPicker');
+    else if (cat === 'language') setScreen('languagePicker');
+    else if (cat === 'world') setScreen('worldPicker');
   }
 
   function launchQuestActivity(day, act) {
@@ -2684,13 +3198,14 @@ function App() {
   function finishActivity(score, total, label) {
     // Quality gate: must get at least 90% to earn gems
     const pct = total > 0 ? score / total : 0;
-    const earned = pct >= 0.9 ? score : 0;
+    // Flat 2 gems per pass - prevents score inflation from long quizzes
+    const earned = pct >= 0.9 ? 2 : 0;
     const passed = pct >= 0.9;
 
     const newGems = gems + earned;
     setGems(newGems);
     setLastResult({score, total, earned, passed});
-    const newHistory = [...history, {label: label || 'Activity', score, earned, when:Date.now()}].slice(-50);
+    const newHistory = [...history, {label: label || 'Activity', subject: category || 'general', score, total, earned, when:Date.now()}].slice(-100);
     setHistory(newHistory);
     if (pendingQuestKey && passed) {
       setQuestCompleted(qc => ({...qc, [pendingQuestKey]: true}));
@@ -2724,6 +3239,9 @@ function App() {
   const spellMap = Object.fromEntries(SPELLING_TESTS.map(s => [s.id, s]));
   const matchMap = Object.fromEntries(MATCH_SETS.map(s => [s.id, s]));
   const grammarMap = Object.fromEntries(GRAMMAR_LESSONS.map(s => [s.id, s]));
+  const englishMap = Object.fromEntries(ENGLISH_LESSONS.map(s => [s.id, s]));
+  const worldMap = Object.fromEntries(WORLD_LESSONS.map(s => [s.id, s]));
+  const langMap = Object.fromEntries(LANGUAGE_SETS.map(s => [s.id, s]));
 
   return (
     <div style={{minHeight:'100vh',paddingBottom:40}}>
@@ -2826,34 +3344,42 @@ function App() {
         questions={grammarMap[currentItem].qs} gems={gems} onHome={goHome}
         onDone={score => finishActivity(score, grammarMap[currentItem].qs.length, "📝 " + grammarMap[currentItem].title)}/>}
 
-      {/* Maths Tests (Assessments) */}
-      {screen === 'assessments' && (() => {
-        const tests = [
-          { title:'Maths Term 1', url:'https://missn77.github.io/curriculum-app/assessments/y2-maths-term1/', icon:'1️⃣' },
-          { title:'Maths Term 2', url:'https://missn77.github.io/curriculum-app/assessments/y2-maths-term2/', icon:'2️⃣' },
-          { title:'Maths Term 3', url:'https://missn77.github.io/curriculum-app/assessments/y2-maths-term3/', icon:'3️⃣' },
-          { title:'Mental Maths', url:'https://missn77.github.io/curriculum-app/assessments/y2-mental-maths/', icon:'🧠' },
-        ];
-        return (
-          <div>
-            <Header gems={gems} onHome={goHome} title="Maths Tests"/>
-            <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:680,margin:'0 auto'}}>
-              <div style={{display:'grid',gap:14}}>
-                {tests.map((t,i) => (
-                  <div key={i} className="cat-card" onClick={() => window.open(t.url, '_blank')}
-                    style={{background:'linear-gradient(135deg,#1A8A7D,#1B4D5C)',boxShadow:'0 6px 18px rgba(0,0,0,0.25)',display:'flex',alignItems:'center',gap:14,cursor:'pointer'}}>
-                    <div style={{fontSize:'2rem'}}>{t.icon}</div>
-                    <div>
-                      <div style={{fontWeight:800,fontSize:'1rem'}}>{t.title}</div>
-                      <div style={{fontSize:'0.78rem',opacity:0.85}}>Opens in new tab</div>
-                    </div>
-                  </div>
-                ))}
+      {/* English */}
+      {screen === 'englishPicker' && <Picker title="English" items={ENGLISH_LESSONS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setCategory('english'); setScreen('englishTeach'); }}/>}
+      {screen === 'englishTeach' && currentItem && <Teach lesson={englishMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('englishQuiz')}/>}
+      {screen === 'englishQuiz' && currentItem && <Quiz title={englishMap[currentItem].title} icon={englishMap[currentItem].icon}
+        questions={englishMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, englishMap[currentItem].qs.length, "🔤 " + englishMap[currentItem].title)}/>}
+
+      {/* Languages */}
+      {screen === 'languagePicker' && (
+        <div className="slide-in" style={{padding:'20px',maxWidth:520,margin:'0 auto'}}>
+          <Header gems={gems} onHome={goHome} title="Languages"/>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginTop:16}}>
+            {LANGUAGE_SETS.map(s => (
+              <div key={s.id} className="cat-card" onClick={() => { setCurrentItem(s.id); setCategory('language'); setScreen('languageLearn'); }}
+                style={{background:s.grad,textAlign:'center',padding:20}}>
+                <div style={{fontSize:'2.2rem',marginBottom:6}}>{s.icon}</div>
+                <div style={{fontWeight:800}}>{s.title}</div>
+                <div style={{fontSize:'0.78rem',opacity:0.8,marginTop:4}}>{s.phrases.length} phrases</div>
               </div>
-            </div>
+            ))}
           </div>
-        );
-      })()}
+        </div>
+      )}
+      {screen === 'languageLearn' && currentItem && <LanguageLearn set={langMap[currentItem]} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, 10, langMap[currentItem].icon + ' ' + langMap[currentItem].title)}/>}
+
+      {/* World Knowledge */}
+      {screen === 'worldPicker' && <Picker title="World Knowledge" items={WORLD_LESSONS} gems={gems} onHome={goHome}
+        onPick={id => { setCurrentItem(id); setCategory('world'); setScreen('worldTeach'); }}/>}
+      {screen === 'worldTeach' && currentItem && <Teach lesson={worldMap[currentItem]} gems={gems} onHome={goHome}
+        onReady={() => setScreen('worldQuiz')}/>}
+      {screen === 'worldQuiz' && currentItem && <Quiz title={worldMap[currentItem].title} icon={worldMap[currentItem].icon}
+        questions={worldMap[currentItem].qs} gems={gems} onHome={goHome}
+        onDone={score => finishActivity(score, worldMap[currentItem].qs.length, "🌐 " + worldMap[currentItem].title)}/>}
 
       {/* Result */}
       {screen === 'result' && lastResult && <Result score={lastResult.score} total={lastResult.total} earned={lastResult.earned} passed={lastResult.passed} gems={gems} robuxTarget={400} onHome={goHome}/>}
