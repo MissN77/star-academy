@@ -1329,6 +1329,42 @@ const SPELLING_TESTS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
+// SENTENCE FILL (Ava - Year 2/3 level, fill the blank)
+// ═══════════════════════════════════════════════════════════════════════════
+const SENTENCE_FILL = [
+  { q:'The sun was so bright that she needed her ___.', opts:['boots','hat','sunglasses','mittens'], ans:2, why:'Sunglasses protect your eyes from the sun!' },
+  { q:'The dog wagged its tail because it was ___.', opts:['sad','happy','tired','hungry'], ans:1, why:'Dogs wag their tails when they are happy!' },
+  { q:'She ran very ___ and won the race.', opts:['slowly','quietly','quickly','loudly'], ans:2, why:'You have to run quickly to win a race!' },
+  { q:'The elephant is a ___ animal.', opts:['tiny','huge','thin','light'], ans:1, why:'Elephants are the largest land animals!' },
+  { q:'He was very ___ because he had not eaten all day.', opts:['full','thirsty','hungry','tired'], ans:2, why:'Not eating makes you hungry!' },
+  { q:'The baby cried ___ in the night.', opts:['silently','loudly','slowly','quietly'], ans:1, why:'Crying loudly is how babies get attention!' },
+  { q:'She put on her ___ because it was raining.', opts:['swimsuit','coat','shorts','sandals'], ans:1, why:'A coat keeps you dry in the rain!' },
+  { q:'The caterpillar turned into a beautiful ___.', opts:['frog','butterfly','bird','fish'], ans:1, why:'Caterpillars become butterflies!' },
+  { q:'He was very ___ of his little sister and always looked after her.', opts:['jealous','afraid','proud','bored'], ans:2, why:'Being proud means you feel good about someone!' },
+  { q:'The flowers ___ beautifully in the warm sunshine.', opts:['slept','swam','bloomed','melted'], ans:2, why:'Flowers bloom in the sunshine!' },
+  { q:'She whispered so quietly that nobody could ___ her.', opts:['see','hear','touch','smell'], ans:1, why:'Whispering is hard to hear!' },
+  { q:'The ice cream began to ___ in the hot sun.', opts:['freeze','melt','grow','bounce'], ans:1, why:'Heat makes ice cream melt!' },
+  { q:'He felt very ___ after a long day at school.', opts:['energetic','tired','excited','angry'], ans:1, why:'School is hard work!' },
+  { q:'The bird sang a ___ song in the tree.', opts:['noisy','sad','beautiful','boring'], ans:2, why:'Birds are famous for their beautiful songs!' },
+  { q:'She drank a glass of water because she was ___.', opts:['hungry','cold','thirsty','tired'], ans:2, why:'You drink water when you are thirsty!' },
+  { q:'The snail moved very ___ across the path.', opts:['quickly','fast','slowly','noisily'], ans:2, why:'Snails are famous for being slow!' },
+  { q:'He brushed his ___ before going to bed.', opts:['hair','hands','teeth','shoes'], ans:2, why:'We brush our teeth before bed!' },
+  { q:'The cake smelled ___ as it baked in the oven.', opts:['terrible','strange','delicious','odd'], ans:2, why:'Baking cakes makes a delicious smell!' },
+  { q:'She felt very ___ when she scored a goal for her team.', opts:['ashamed','bored','proud','nervous'], ans:2, why:'Scoring a goal makes you feel proud!' },
+  { q:'The kitten played with a ball of ___.', opts:['stone','wool','mud','glass'], ans:1, why:'Kittens love playing with wool!' },
+  { q:'The children were very ___ on Christmas morning.', opts:['grumpy','bored','sad','excited'], ans:3, why:'Christmas morning is so exciting!' },
+  { q:'She put on her ___ so she could swim.', opts:['pyjamas','swimsuit','coat','uniform'], ans:1, why:'You wear a swimsuit to swim!' },
+  { q:'The tree had lost all its ___ in autumn.', opts:['roots','branches','leaves','flowers'], ans:2, why:'Leaves fall from trees in autumn!' },
+  { q:'He was very ___ of speaking in front of the whole school.', opts:['bored','nervous','happy','proud'], ans:1, why:'Speaking in front of everyone can feel scary!' },
+  { q:'The penguin lives in a very ___ place called the Antarctic.', opts:['hot','dry','cold','wet'], ans:2, why:'Penguins live in freezing cold Antarctica!' },
+  { q:'She ___ her hand to answer the teacher\'s question.', opts:['dropped','crossed','raised','folded'], ans:2, why:'We raise our hand in class to answer!' },
+  { q:'The baby deer was very ___ and could barely walk.', opts:['huge','wobbly','fast','fierce'], ans:1, why:'Baby deer are wobbly on their new legs!' },
+  { q:'He looked both ways before crossing the ___.', opts:['playground','road','field','river'], ans:1, why:'Always look both ways before crossing the road!' },
+  { q:'The rainbow appeared in the sky after the ___.', opts:['sunshine','snow','rain','wind'], ans:2, why:'Rainbows appear after rain!' },
+  { q:'She felt a ___ of butterflies in her tummy before the show.', opts:['swarm','flock','flutter','herd'], ans:2, why:'A flutter of butterflies is that nervous feeling!' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ENGLISH (synonyms, antonyms, homophones, prefixes, compound words)
 // ═══════════════════════════════════════════════════════════════════════════
 const ENGLISH_LESSONS = [
@@ -1459,42 +1495,6 @@ Read the whole sentence carefully, then think: which word fits best?
 - Say it out loud with each option
 - Pick the one that sounds right and makes sense`,
     qs: SENTENCE_FILL.slice().sort(()=>Math.random()-0.5).slice(0,10) },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SENTENCE FILL (Ava - Year 2/3 level, fill the blank)
-// ═══════════════════════════════════════════════════════════════════════════
-const SENTENCE_FILL = [
-  { q:'The sun was so bright that she needed her ___.', opts:['boots','hat','sunglasses','mittens'], ans:2, why:'Sunglasses protect your eyes from the sun!' },
-  { q:'The dog wagged its tail because it was ___.', opts:['sad','happy','tired','hungry'], ans:1, why:'Dogs wag their tails when they are happy!' },
-  { q:'She ran very ___ and won the race.', opts:['slowly','quietly','quickly','loudly'], ans:2, why:'You have to run quickly to win a race!' },
-  { q:'The elephant is a ___ animal.', opts:['tiny','huge','thin','light'], ans:1, why:'Elephants are the largest land animals!' },
-  { q:'He was very ___ because he had not eaten all day.', opts:['full','thirsty','hungry','tired'], ans:2, why:'Not eating makes you hungry!' },
-  { q:'The baby cried ___ in the night.', opts:['silently','loudly','slowly','quietly'], ans:1, why:'Crying loudly is how babies get attention!' },
-  { q:'She put on her ___ because it was raining.', opts:['swimsuit','coat','shorts','sandals'], ans:1, why:'A coat keeps you dry in the rain!' },
-  { q:'The caterpillar turned into a beautiful ___.', opts:['frog','butterfly','bird','fish'], ans:1, why:'Caterpillars become butterflies!' },
-  { q:'He was very ___ of his little sister and always looked after her.', opts:['jealous','afraid','proud','bored'], ans:2, why:'Being proud means you feel good about someone!' },
-  { q:'The flowers ___ beautifully in the warm sunshine.', opts:['slept','swam','bloomed','melted'], ans:2, why:'Flowers bloom in the sunshine!' },
-  { q:'She whispered so quietly that nobody could ___ her.', opts:['see','hear','touch','smell'], ans:1, why:'Whispering is hard to hear!' },
-  { q:'The ice cream began to ___ in the hot sun.', opts:['freeze','melt','grow','bounce'], ans:1, why:'Heat makes ice cream melt!' },
-  { q:'He felt very ___ after a long day at school.', opts:['energetic','tired','excited','angry'], ans:1, why:'School is hard work!' },
-  { q:'The bird sang a ___ song in the tree.', opts:['noisy','sad','beautiful','boring'], ans:2, why:'Birds are famous for their beautiful songs!' },
-  { q:'She drank a glass of water because she was ___.', opts:['hungry','cold','thirsty','tired'], ans:2, why:'You drink water when you are thirsty!' },
-  { q:'The snail moved very ___ across the path.', opts:['quickly','fast','slowly','noisily'], ans:2, why:'Snails are famous for being slow!' },
-  { q:'He brushed his ___ before going to bed.', opts:['hair','hands','teeth','shoes'], ans:2, why:'We brush our teeth before bed!' },
-  { q:'The cake smelled ___ as it baked in the oven.', opts:['terrible','strange','delicious','odd'], ans:2, why:'Baking cakes makes a delicious smell!' },
-  { q:'She felt very ___ when she scored a goal for her team.', opts:['ashamed','bored','proud','nervous'], ans:2, why:'Scoring a goal makes you feel proud!' },
-  { q:'The kitten played with a ball of ___.', opts:['stone','wool','mud','glass'], ans:1, why:'Kittens love playing with wool!' },
-  { q:'The children were very ___ on Christmas morning.', opts:['grumpy','bored','sad','excited'], ans:3, why:'Christmas morning is so exciting!' },
-  { q:'She put on her ___ so she could swim.', opts:['pyjamas','swimsuit','coat','uniform'], ans:1, why:'You wear a swimsuit to swim!' },
-  { q:'The tree had lost all its ___ in autumn.', opts:['roots','branches','leaves','flowers'], ans:2, why:'Leaves fall from trees in autumn!' },
-  { q:'He was very ___ of speaking in front of the whole school.', opts:['bored','nervous','happy','proud'], ans:1, why:'Speaking in front of everyone can feel scary!' },
-  { q:'The penguin lives in a very ___ place called the Antarctic.', opts:['hot','dry','cold','wet'], ans:2, why:'Penguins live in freezing cold Antarctica!' },
-  { q:'She ___ her hand to answer the teacher\'s question.', opts:['dropped','crossed','raised','folded'], ans:2, why:'We raise our hand in class to answer!' },
-  { q:'The baby deer was very ___ and could barely walk.', opts:['huge','wobbly','fast','fierce'], ans:1, why:'Baby deer are wobbly on their new legs!' },
-  { q:'He looked both ways before crossing the ___.', opts:['playground','road','field','river'], ans:1, why:'Always look both ways before crossing the road!' },
-  { q:'The rainbow appeared in the sky after the ___.', opts:['sunshine','snow','rain','wind'], ans:2, why:'Rainbows appear after rain!' },
-  { q:'She felt a ___ of butterflies in her tummy before the show.', opts:['swarm','flock','flutter','herd'], ans:2, why:'A flutter of butterflies is that nervous feeling!' },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
