@@ -1,0 +1,865 @@
+{
+ "note": "Year 3/4 statutory spelling list. Wrong spellings are checked against the system dictionary so none of them is a real word.",
+ "sets": [
+  {
+   "id": "y3spell1",
+   "title": "Statutory Words 1",
+   "words": [
+    {
+     "word": "accident",
+     "wrong": [
+      "acident",
+      "accdent",
+      "acciddent"
+     ]
+    },
+    {
+     "word": "accidentally",
+     "wrong": [
+      "accidentaly",
+      "acidentally",
+      "acciedntally"
+     ]
+    },
+    {
+     "word": "actual",
+     "wrong": [
+      "atcual",
+      "actal",
+      "acctual"
+     ]
+    },
+    {
+     "word": "actually",
+     "wrong": [
+      "actualy",
+      "actulaly",
+      "actally"
+     ]
+    },
+    {
+     "word": "address",
+     "wrong": [
+      "adress",
+      "addres",
+      "adres"
+     ]
+    },
+    {
+     "word": "answer",
+     "wrong": [
+      "ansewr",
+      "answere",
+      "anwser"
+     ]
+    },
+    {
+     "word": "appear",
+     "wrong": [
+      "apear",
+      "apper",
+      "apppear"
+     ]
+    },
+    {
+     "word": "arrive",
+     "wrong": [
+      "arive",
+      "arrvie",
+      "arrrive"
+     ]
+    },
+    {
+     "word": "believe",
+     "wrong": [
+      "beleive",
+      "believ",
+      "belivee"
+     ]
+    },
+    {
+     "word": "bicycle",
+     "wrong": [
+      "bciycle",
+      "bcycle",
+      "bicyccle"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell2",
+   "title": "Statutory Words 2",
+   "words": [
+    {
+     "word": "breath",
+     "wrong": [
+      "braeth",
+      "brreath",
+      "breoth"
+     ]
+    },
+    {
+     "word": "breathe",
+     "wrong": [
+      "breeth",
+      "braethe",
+      "brathe"
+     ]
+    },
+    {
+     "word": "build",
+     "wrong": [
+      "biuld",
+      "buld",
+      "builld"
+     ]
+    },
+    {
+     "word": "busy",
+     "wrong": [
+      "bsuy",
+      "bsy",
+      "bussy"
+     ]
+    },
+    {
+     "word": "business",
+     "wrong": [
+      "buisness",
+      "busness",
+      "bussiness"
+     ]
+    },
+    {
+     "word": "calendar",
+     "wrong": [
+      "callendar",
+      "claendar",
+      "caendar"
+     ]
+    },
+    {
+     "word": "caught",
+     "wrong": [
+      "cought",
+      "caugt",
+      "caut"
+     ]
+    },
+    {
+     "word": "centre",
+     "wrong": [
+      "centr",
+      "sentre",
+      "cetnre"
+     ]
+    },
+    {
+     "word": "century",
+     "wrong": [
+      "cenutry",
+      "cenury",
+      "centurry"
+     ]
+    },
+    {
+     "word": "certain",
+     "wrong": [
+      "ceratin",
+      "cerain",
+      "certtain"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell3",
+   "title": "Statutory Words 3",
+   "words": [
+    {
+     "word": "circle",
+     "wrong": [
+      "cirlce",
+      "cicle",
+      "circcle"
+     ]
+    },
+    {
+     "word": "complete",
+     "wrong": [
+      "copmlete",
+      "cmplete",
+      "compllete"
+     ]
+    },
+    {
+     "word": "consider",
+     "wrong": [
+      "conisder",
+      "consder",
+      "considder"
+     ]
+    },
+    {
+     "word": "continue",
+     "wrong": [
+      "conitnue",
+      "cotinue",
+      "conttinue"
+     ]
+    },
+    {
+     "word": "decide",
+     "wrong": [
+      "deicde",
+      "deide",
+      "decidde"
+     ]
+    },
+    {
+     "word": "describe",
+     "wrong": [
+      "dsecribe",
+      "descrie",
+      "desscribe"
+     ]
+    },
+    {
+     "word": "different",
+     "wrong": [
+      "diferent",
+      "diffeernt",
+      "diffferent"
+     ]
+    },
+    {
+     "word": "difficult",
+     "wrong": [
+      "dificult",
+      "diffcult",
+      "diffciult"
+     ]
+    },
+    {
+     "word": "disappear",
+     "wrong": [
+      "dissapear",
+      "disapear",
+      "dissappear"
+     ]
+    },
+    {
+     "word": "early",
+     "wrong": [
+      "ealry",
+      "eary",
+      "earlly"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell4",
+   "title": "Statutory Words 4",
+   "words": [
+    {
+     "word": "earth",
+     "wrong": [
+      "erath",
+      "eath",
+      "earrth"
+     ]
+    },
+    {
+     "word": "eight",
+     "wrong": [
+      "egiht",
+      "eiht",
+      "eigght"
+     ]
+    },
+    {
+     "word": "eighth",
+     "wrong": [
+      "egihth",
+      "eighh",
+      "eightth"
+     ]
+    },
+    {
+     "word": "enough",
+     "wrong": [
+      "enuogh",
+      "enuff",
+      "enogh"
+     ]
+    },
+    {
+     "word": "exercise",
+     "wrong": [
+      "excercise",
+      "exersise",
+      "exercize"
+     ]
+    },
+    {
+     "word": "experience",
+     "wrong": [
+      "experiance",
+      "expereince",
+      "experence"
+     ]
+    },
+    {
+     "word": "experiment",
+     "wrong": [
+      "experimnet",
+      "expeiment",
+      "experimennt"
+     ]
+    },
+    {
+     "word": "extreme",
+     "wrong": [
+      "etxreme",
+      "etreme",
+      "extremme"
+     ]
+    },
+    {
+     "word": "famous",
+     "wrong": [
+      "fmaous",
+      "faous",
+      "fammous"
+     ]
+    },
+    {
+     "word": "favourite",
+     "wrong": [
+      "favourit",
+      "favurite",
+      "favoruite"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell5",
+   "title": "Statutory Words 5",
+   "words": [
+    {
+     "word": "February",
+     "wrong": [
+      "Febuary",
+      "Feburary",
+      "Februray"
+     ]
+    },
+    {
+     "word": "forward",
+     "wrong": [
+      "forwrad",
+      "forwrd",
+      "forwarrd"
+     ]
+    },
+    {
+     "word": "forwards",
+     "wrong": [
+      "frowards",
+      "forwrds",
+      "forwwards"
+     ]
+    },
+    {
+     "word": "fruit",
+     "wrong": [
+      "friut",
+      "frruit",
+      "fruut"
+     ]
+    },
+    {
+     "word": "grammar",
+     "wrong": [
+      "grammer",
+      "gramar",
+      "grammor"
+     ]
+    },
+    {
+     "word": "group",
+     "wrong": [
+      "gruop",
+      "grop",
+      "grroup"
+     ]
+    },
+    {
+     "word": "guard",
+     "wrong": [
+      "gaurd",
+      "gard",
+      "guarde"
+     ]
+    },
+    {
+     "word": "guide",
+     "wrong": [
+      "gudie",
+      "gide",
+      "guidde"
+     ]
+    },
+    {
+     "word": "heard",
+     "wrong": [
+      "herad",
+      "hearrd",
+      "heord"
+     ]
+    },
+    {
+     "word": "heart",
+     "wrong": [
+      "haert",
+      "hearrt",
+      "heurt"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell6",
+   "title": "Statutory Words 6",
+   "words": [
+    {
+     "word": "height",
+     "wrong": [
+      "hieght",
+      "heigth",
+      "heigt"
+     ]
+    },
+    {
+     "word": "history",
+     "wrong": [
+      "hsitory",
+      "hstory",
+      "hisstory"
+     ]
+    },
+    {
+     "word": "imagine",
+     "wrong": [
+      "imaigne",
+      "imgine",
+      "imaggine"
+     ]
+    },
+    {
+     "word": "increase",
+     "wrong": [
+      "inrcease",
+      "incrase",
+      "incrrease"
+     ]
+    },
+    {
+     "word": "important",
+     "wrong": [
+      "imporatnt",
+      "importnt",
+      "importannt"
+     ]
+    },
+    {
+     "word": "interest",
+     "wrong": [
+      "iterest",
+      "intterest",
+      "interust"
+     ]
+    },
+    {
+     "word": "island",
+     "wrong": [
+      "iland",
+      "islnd",
+      "ilsand"
+     ]
+    },
+    {
+     "word": "knowledge",
+     "wrong": [
+      "knowlege",
+      "nowledge",
+      "knoweldge"
+     ]
+    },
+    {
+     "word": "learn",
+     "wrong": [
+      "leran",
+      "larn",
+      "learrn"
+     ]
+    },
+    {
+     "word": "length",
+     "wrong": [
+      "lentgh",
+      "lengh",
+      "lengtth"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell7",
+   "title": "Statutory Words 7",
+   "words": [
+    {
+     "word": "library",
+     "wrong": [
+      "libary",
+      "liberry",
+      "libraray"
+     ]
+    },
+    {
+     "word": "material",
+     "wrong": [
+      "mtaerial",
+      "mterial",
+      "materrial"
+     ]
+    },
+    {
+     "word": "medicine",
+     "wrong": [
+      "medecine",
+      "medicin",
+      "medisine"
+     ]
+    },
+    {
+     "word": "mention",
+     "wrong": [
+      "metnion",
+      "mentin",
+      "menttion"
+     ]
+    },
+    {
+     "word": "minute",
+     "wrong": [
+      "minuite",
+      "minit",
+      "mintue"
+     ]
+    },
+    {
+     "word": "natural",
+     "wrong": [
+      "nautral",
+      "naural",
+      "naturral"
+     ]
+    },
+    {
+     "word": "naughty",
+     "wrong": [
+      "naugty",
+      "nortey",
+      "naughtty"
+     ]
+    },
+    {
+     "word": "notice",
+     "wrong": [
+      "ntoice",
+      "ntice",
+      "noticce"
+     ]
+    },
+    {
+     "word": "occasion",
+     "wrong": [
+      "ocasion",
+      "occassion",
+      "occaison"
+     ]
+    },
+    {
+     "word": "occasionally",
+     "wrong": [
+      "occasionaly",
+      "ocassionally",
+      "occassionally"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell8",
+   "title": "Statutory Words 8",
+   "words": [
+    {
+     "word": "often",
+     "wrong": [
+      "otfen",
+      "ofen",
+      "oftten"
+     ]
+    },
+    {
+     "word": "opposite",
+     "wrong": [
+      "oposite",
+      "oppisite",
+      "oppsoite"
+     ]
+    },
+    {
+     "word": "ordinary",
+     "wrong": [
+      "ordinery",
+      "ordnary",
+      "ordinaray"
+     ]
+    },
+    {
+     "word": "particular",
+     "wrong": [
+      "partiuclar",
+      "particuar",
+      "particullar"
+     ]
+    },
+    {
+     "word": "peculiar",
+     "wrong": [
+      "peculier",
+      "pecular",
+      "peculiear"
+     ]
+    },
+    {
+     "word": "perhaps",
+     "wrong": [
+      "prhaps",
+      "perrhaps",
+      "purhaps"
+     ]
+    },
+    {
+     "word": "popular",
+     "wrong": [
+      "pouplar",
+      "populr",
+      "poppular"
+     ]
+    },
+    {
+     "word": "position",
+     "wrong": [
+      "positoin",
+      "positon",
+      "posittion"
+     ]
+    },
+    {
+     "word": "possess",
+     "wrong": [
+      "posess",
+      "posses",
+      "posesss"
+     ]
+    },
+    {
+     "word": "possession",
+     "wrong": [
+      "posession",
+      "possesion",
+      "posesion"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell9",
+   "title": "Statutory Words 9",
+   "words": [
+    {
+     "word": "possible",
+     "wrong": [
+      "posible",
+      "posisble",
+      "pssible"
+     ]
+    },
+    {
+     "word": "potatoes",
+     "wrong": [
+      "potatos",
+      "potatoe",
+      "pototoes"
+     ]
+    },
+    {
+     "word": "pressure",
+     "wrong": [
+      "presure",
+      "perssure",
+      "pressurre"
+     ]
+    },
+    {
+     "word": "probably",
+     "wrong": [
+      "probaly",
+      "probablly",
+      "probbably"
+     ]
+    },
+    {
+     "word": "promise",
+     "wrong": [
+      "promsie",
+      "pomise",
+      "promisse"
+     ]
+    },
+    {
+     "word": "purpose",
+     "wrong": [
+      "puprose",
+      "pupose",
+      "purppose"
+     ]
+    },
+    {
+     "word": "quarter",
+     "wrong": [
+      "quater",
+      "qarter",
+      "quarther"
+     ]
+    },
+    {
+     "word": "question",
+     "wrong": [
+      "questoin",
+      "qestion",
+      "questin"
+     ]
+    },
+    {
+     "word": "recent",
+     "wrong": [
+      "rceent",
+      "recet",
+      "reccent"
+     ]
+    },
+    {
+     "word": "regular",
+     "wrong": [
+      "rgeular",
+      "rgular",
+      "regullar"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "y3spell10",
+   "title": "Statutory Words 10",
+   "words": [
+    {
+     "word": "reign",
+     "wrong": [
+      "riegn",
+      "raign",
+      "regn"
+     ]
+    },
+    {
+     "word": "remember",
+     "wrong": [
+      "remeber",
+      "rember",
+      "remmember"
+     ]
+    },
+    {
+     "word": "sentence",
+     "wrong": [
+      "sentecne",
+      "sentece",
+      "sentennce"
+     ]
+    },
+    {
+     "word": "separate",
+     "wrong": [
+      "seperate",
+      "seprate",
+      "separat"
+     ]
+    },
+    {
+     "word": "special",
+     "wrong": [
+      "sepcial",
+      "secial",
+      "sppecial"
+     ]
+    },
+    {
+     "word": "straight",
+     "wrong": [
+      "straght",
+      "stragiht",
+      "straiht"
+     ]
+    },
+    {
+     "word": "strange",
+     "wrong": [
+      "starnge",
+      "strane",
+      "strangge"
+     ]
+    },
+    {
+     "word": "strength",
+     "wrong": [
+      "strengh",
+      "strengt",
+      "stregnth"
+     ]
+    },
+    {
+     "word": "suppose",
+     "wrong": [
+      "supose",
+      "spupose",
+      "supposse"
+     ]
+    },
+    {
+     "word": "surprise",
+     "wrong": [
+      "suprise",
+      "surprize",
+      "surpise"
+     ]
+    }
+   ]
+  }
+ ]
+}

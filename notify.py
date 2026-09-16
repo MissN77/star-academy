@@ -41,6 +41,7 @@ SUBJECT_LABELS = {
     'world': 'World Knowledge', 'times': 'Times Tables', 'prep': '11+ Prep',
     're': 'RE', 'match': 'Matching', 'odd': 'Odd One Out',
     'short': 'Short Answer', 'speed': 'Speed Test', 'general': 'General',
+    'year3': 'Year 3',
 }
 
 def sb_get(table, params=''):

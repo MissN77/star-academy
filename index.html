@@ -7,6 +7,10 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Year 3 tier: generated maths, authored English, original reading passages -->
+<script src="year3/maths.js"></script>
+<script src="year3/english.js"></script>
+<script src="year3/reading.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
 <style>
   body{margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a0533 0%,#2d0a5e 40%,#1a0533 100%);min-height:100vh;color:#fff;}
@@ -2017,9 +2021,191 @@ function Welcome({ gems, onStart }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// YEAR 3
+// Her school year, built to last it: generated maths (a new paper every time),
+// authored English, the statutory spelling list and original reading passages.
+// Banks live in year3/*.js so this file stays readable.
+// ═══════════════════════════════════════════════════════════════════════════
+const Y3_COUNT = (typeof Y3_MATHS !== 'undefined' ? Y3_MATHS.TOPICS.length : 0)
+  + (typeof Y3_ENGLISH !== 'undefined' ? Y3_ENGLISH.SETS.length : 0)
+  + (typeof Y3_READING !== 'undefined' ? Y3_READING.PASSAGES.length : 0)
+  + 11;   // ten spelling sets plus the morning ten
+
+/** One quiz runner for everything in the Year 3 tier. */
+function Y3Quiz({ questions, label, teach, passage, onDone, onHome, gems }) {
+  const [qi, setQi] = React.useState(0);
+  const [chosen, setChosen] = React.useState(null);
+  const [score, setScore] = React.useState(0);
+  const [showText, setShowText] = React.useState(false);
+
+  const q = questions[qi];
+
+  function pick(i, e) {
+    if (chosen !== null) return;
+    setChosen(i);
+    if (i === q.ans) { playCorrect(); setScore(s => s + 1); if (e) burstSparkles(e.clientX, e.clientY); }
+    else playWrong();
+  }
+
+  function next() {
+    if (qi + 1 < questions.length) { setQi(qi + 1); setChosen(null); }
+    else { playFanfare(); onDone(score, questions.length, label); }
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome} title={label}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:520,margin:'0 auto'}}>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:'0.85rem',color:'rgba(255,255,255,0.6)'}}>
+            <span>{label}</span>
+            <span>Q{qi+1}/{questions.length} · {score} ⭐</span>
+          </div>
+          <ProgressBar value={qi/questions.length}/>
+        </div>
+
+        {teach && qi === 0 && chosen === null && (
+          <div className="card" style={{padding:14,marginBottom:12,background:'rgba(124,58,237,0.18)',border:'1px solid rgba(124,58,237,0.5)'}}>
+            <div style={{fontSize:'0.8rem',fontWeight:800,color:'#c4b5fd',marginBottom:4}}>REMEMBER</div>
+            <div style={{fontSize:'0.9rem',lineHeight:1.45}}>{teach}</div>
+          </div>
+        )}
+
+        {passage && (
+          <div style={{marginBottom:12}}>
+            <button className="btn-ghost" onClick={() => setShowText(v => !v)} style={{width:'100%'}}>
+              {showText ? 'Hide the story ▲' : 'Look back at the story ▼'}
+            </button>
+            {showText && (
+              <div className="card" style={{padding:16,marginTop:8,maxHeight:260,overflowY:'auto',fontSize:'0.92rem',lineHeight:1.6,whiteSpace:'pre-wrap'}}>
+                {passage}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="card pop" key={qi} style={{padding:22,marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:16}}>{q.q}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {q.opts.map((opt, i) => (
+              <button key={i} className={`opt-btn${chosen!==null ? i===q.ans?' correct':i===chosen?' wrong':'' : ''}`} onClick={(e)=>pick(i,e)}>
+                <span style={{marginRight:8,opacity:0.6}}>{['A','B','C','D'][i]}.</span>{opt}
+              </button>
+            ))}
+          </div>
+          {chosen !== null && (
+            <div style={{marginTop:12,padding:'10px 14px',borderRadius:12,background:chosen===q.ans?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)',fontSize:'0.88rem',lineHeight:1.45}}>
+              {chosen===q.ans?'🌟 ':'💡 '}{q.why}
+            </div>
+          )}
+        </div>
+        {chosen !== null && (
+          <div style={{textAlign:'center'}}>
+            <button className="btn-primary" onClick={next}>{qi+1 < questions.length ? 'Next →' : 'Finish! 🎉'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** The Year 3 menu: morning ten, maths, English, spelling and reading. */
+function Year3Section({ onStart, onHome, gems }) {
+  const [tab, setTab] = React.useState('maths');
+  const [spelling, setSpelling] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch('year3/spelling.json').then(r => r.json())
+      .then(d => setSpelling(d.sets)).catch(() => setSpelling([]));
+  }, []);
+
+  const TABS = [
+    { k:'maths', l:'🔢 Maths' }, { k:'english', l:'🔤 English' },
+    { k:'spelling', l:'✏️ Spelling' }, { k:'reading', l:'📖 Reading' }
+  ];
+
+  function tile(key, title, sub, colour) {
+    return (
+      <button key={key} className="card cat-card" onClick={() => onStart(key)}
+        style={{padding:16,textAlign:'left',background:`linear-gradient(135deg,${colour}33,${colour}1a)`,border:`1px solid ${colour}66`}}>
+        <div style={{fontSize:'1.05rem',fontWeight:800,marginBottom:2}}>{title}</div>
+        <div style={{fontSize:'0.8rem',opacity:0.75}}>{sub}</div>
+      </button>
+    );
+  }
+
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome} title="Year 3"/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:560,margin:'0 auto'}}>
+
+        <button className="card cat-card" onClick={() => onStart('y3:morning')}
+          style={{width:'100%',padding:18,marginBottom:16,textAlign:'left',
+                  background:'linear-gradient(135deg,#7c3aed,#0891b2)',border:'none'}}>
+          <div style={{fontSize:'1.3rem',fontWeight:800}}>☀️ Morning Ten</div>
+          <div style={{fontSize:'0.85rem',opacity:0.9}}>
+            Ten mixed questions before school. A brand new set every single day.
+          </div>
+        </button>
+
+        <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap'}}>
+          {TABS.map(t => (
+            <button key={t.k} className="btn-ghost" onClick={() => setTab(t.k)}
+              style={{flex:1,minWidth:110,padding:'8px 4px',
+                      background: tab===t.k ? 'rgba(124,58,237,0.45)' : undefined,
+                      border: tab===t.k ? '1px solid #a78bfa' : undefined}}>
+              {t.l}
+            </button>
+          ))}
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {tab === 'maths' && Y3_MATHS.TOPICS.map(t =>
+            tile('y3m:' + t.id, `${t.icon} ${t.name}`, 'Ten questions, never the same twice', '#06b6d4'))}
+
+          {tab === 'english' && Y3_ENGLISH.SETS.map(s =>
+            tile('y3e:' + s.id, `${s.icon} ${s.title}`, `${s.qs.length} questions`, '#ec4899'))}
+
+          {tab === 'spelling' && (spelling === null
+            ? <div style={{opacity:0.7}}>Loading the word list…</div>
+            : spelling.map(s =>
+              tile('y3s:' + s.id, `✏️ ${s.title}`,
+                s.words.slice(0, 3).map(w => w.word).join(', ') + '…', '#f59e0b')))}
+
+          {tab === 'reading' && Y3_READING.PASSAGES.map(p =>
+            tile('y3r:' + p.id, `${p.icon} ${p.title}`, 'Read it, then eight questions', '#10b981'))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The passage on its own, before the questions start. */
+function Y3Reader({ passage, onReady, onHome, gems }) {
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome} title={passage.title}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:560,margin:'0 auto'}}>
+        <div className="card" style={{padding:20,marginBottom:16}}>
+          <div style={{fontSize:'1.2rem',fontWeight:800,marginBottom:10}}>{passage.icon} {passage.title}</div>
+          <div style={{fontSize:'1rem',lineHeight:1.7,whiteSpace:'pre-wrap'}}>{passage.text}</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <button className="btn-primary" onClick={onReady}>I have read it, ask me the questions →</button>
+        </div>
+        <p style={{textAlign:'center',fontSize:'0.8rem',opacity:0.6,marginTop:10}}>
+          You can look back at the story while you answer.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Home (subject picker) ──────────────────────────────────────────────────
 function Home({ gems, onPick, onReset, robux }) {
   const subjects = [
+    { id:'year3', title:'Year 3', desc:'Your school year, every day', icon:'\u{1F393}', grad:'linear-gradient(135deg,#7c3aed,#0891b2)', count:Y3_COUNT },
     { id:'stories', title:'Stories', desc:'Read & answer', icon:'📖', grad:'linear-gradient(135deg,#f59e0b,#f97316)', count:STORIES.length },
     { id:'maths', title:'Maths', desc:'Train, Practise, Test', icon:'🔢', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', count:3 },
     { id:'times', title:'Times Tables', desc:'Practise multiplying', icon:'✖️', grad:'linear-gradient(135deg,#f43f5e,#8b5cf6)', count:TIMES_TABLES.length+1 },
@@ -2512,7 +2698,7 @@ function MathsSection({ onDone, onHome, gems }) {
         <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:480,margin:'0 auto'}}>
           <p style={{color:'rgba(255,255,255,0.7)',textAlign:'center',marginBottom:20}}>Choose your level. Work up from Train to Test!</p>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            {[{k:'train',l:'🚂 Train',d:'Warm up (10 qs)',c:'#10b981'},{k:'practise',l:'📝 Practise',d:'Build skill (10 qs)',c:'#3b82f6'},{k:'word',l:'📖 Word Problems',d:'Story maths (12 qs)',c:'#ec4899'},{k:'test',l:'🏆 Test',d:'Challenge yourself (10 qs)',c:'#f59e0b'}].map(t => (
+            {[{k:'train',l:'🚂 Train',d:'Warm up (10 qs) · Year 2 level',c:'#10b981'},{k:'practise',l:'📝 Practise',d:'Build skill (10 qs)',c:'#3b82f6'},{k:'word',l:'📖 Word Problems',d:'Story maths (12 qs)',c:'#ec4899'},{k:'test',l:'🏆 Test',d:'Challenge yourself (10 qs)',c:'#f59e0b'}].map(t => (
               <button key={t.k} className="card cat-card" onClick={() => setTier(t.k)}
                 style={{padding:18,background:`linear-gradient(135deg,${t.c}33,${t.c}22)`,border:`1px solid ${t.c}66`}}>
                 <div style={{fontSize:'1.4rem',fontWeight:800,marginBottom:4}}>{t.l}</div>
@@ -3151,7 +3337,61 @@ function App() {
 
   const robux = Math.floor(totalTaskMinutes / 30);
 
-  function goHome() { setScreen('home'); setCategory(null); setCurrentItem(null); activityStartRef.current = null; }
+  // ── Year 3 ────────────────────────────────────────────────────────────────
+  const [y3, setY3] = React.useState(null);      // {questions,label,teach,passage}
+  const [y3Spelling, setY3Spelling] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch('year3/spelling.json').then(r => r.json())
+      .then(d => setY3Spelling(d.sets)).catch(() => setY3Spelling([]));
+  }, []);
+
+  /** Turn one spelling set into "which spelling is correct?" questions. */
+  function spellingQuestions(set) {
+    return [...set.words].sort(() => Math.random() - 0.5).map(w => {
+      const opts = [w.word, ...w.wrong].sort(() => Math.random() - 0.5);
+      return {
+        q: 'Which spelling is correct?',
+        opts,
+        ans: opts.indexOf(w.word),
+        why: 'It is spelled ' + w.word + '. Look at it, cover it, write it, check it.'
+      };
+    });
+  }
+
+  function startY3(key) {
+    activityStartRef.current = Date.now();
+    setCategory('year3');
+    if (key === 'y3:morning') {
+      const qs = [...Y3_MATHS.makeMixed(6), ...Y3_ENGLISH.makeMixed(4)]
+        .sort(() => Math.random() - 0.5);
+      setY3({ questions: qs, label: '☀️ Morning Ten' });
+      setScreen('y3quiz');
+      return;
+    }
+    const [kind, id] = [key.slice(0, 4), key.slice(4)];
+    if (kind === 'y3m:') {
+      const t = Y3_MATHS.TOPICS.find(x => x.id === id);
+      setY3({ questions: Y3_MATHS.makeSet(id, 10), label: '🔢 ' + (t ? t.name : 'Maths') });
+      setScreen('y3quiz');
+    } else if (kind === 'y3e:') {
+      const set = Y3_ENGLISH.SETS.find(x => x.id === id);
+      setY3({ questions: Y3_ENGLISH.makeSet(id, 12), label: '🔤 ' + (set ? set.title : 'English'), teach: set && set.teach });
+      setScreen('y3quiz');
+    } else if (kind === 'y3s:') {
+      const set = (y3Spelling || []).find(x => x.id === id);
+      if (!set) return;
+      setY3({ questions: spellingQuestions(set), label: '✏️ ' + set.title });
+      setScreen('y3quiz');
+    } else if (kind === 'y3r:') {
+      const p = Y3_READING.PASSAGES.find(x => x.id === id);
+      if (!p) return;
+      setY3({ passageObj: p, label: '📖 ' + p.title });
+      setScreen('y3read');
+    }
+  }
+
+  function goHome() { setScreen('home'); setCategory(null); setCurrentItem(null); setY3(null); activityStartRef.current = null; }
 
   function pickCategory(cat) {
     activityStartRef.current = Date.now();
@@ -3166,6 +3406,7 @@ function App() {
     else if (cat === 'odd') setScreen('odd');
     else if (cat === 'short') setScreen('short');
     else if (cat === 'maths') setScreen('maths');
+    else if (cat === 'year3') setScreen('year3');
     else if (cat === 'prep') setScreen('prep');
     else if (cat === 'times') setScreen('timesPicker');
     else if (cat === 'grammar') setScreen('grammarPicker');
@@ -3331,6 +3572,17 @@ function App() {
         onDone={score => finishActivity(score, SHORT_ANSWER.length, "💭 Short Answer")}/>}
 
       {/* Maths */}
+      {screen === 'year3' && <Year3Section gems={gems} onHome={goHome} onStart={startY3}/>}
+      {screen === 'y3read' && y3 && y3.passageObj && <Y3Reader gems={gems} onHome={goHome}
+        passage={y3.passageObj}
+        onReady={() => {
+          setY3({ ...y3, questions: Y3_READING.questionsFor(y3.passageObj.id), passage: y3.passageObj.text });
+          setScreen('y3quiz');
+        }}/>}
+      {screen === 'y3quiz' && y3 && y3.questions && <Y3Quiz gems={gems} onHome={goHome}
+        questions={y3.questions} label={y3.label} teach={y3.teach} passage={y3.passage}
+        onDone={(score, total, label) => finishActivity(score, total, label)}/>}
+
       {screen === 'maths' && <MathsSection gems={gems} onHome={goHome}
         onDone={(score, total, tier) => finishActivity(score, total,
           "🔢 Maths" + ({train:' · Train',practise:' · Practise',word:' · Word Problems',test:' · Test'}[tier] || ''))}/>}
