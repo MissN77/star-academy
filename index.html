@@ -11,6 +11,7 @@
 <script src="year3/maths.js"></script>
 <script src="year3/english.js"></script>
 <script src="year3/reading.js"></script>
+<script src="year3/bfg.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
 <style>
   body{margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a0533 0%,#2d0a5e 40%,#1a0533 100%);min-height:100vh;color:#fff;}
@@ -2030,6 +2031,7 @@ function Welcome({ gems, onStart }) {
 const Y3_COUNT = (typeof Y3_MATHS !== 'undefined' ? Y3_MATHS.TOPICS.length : 0)
   + (typeof Y3_ENGLISH !== 'undefined' ? Y3_ENGLISH.SETS.length : 0)
   + (typeof Y3_READING !== 'undefined' ? Y3_READING.PASSAGES.length : 0)
+  + (typeof Y3_BFG !== 'undefined' ? Y3_BFG.STAGES.length : 0)
   + 11;   // ten spelling sets plus the morning ten
 
 /** One quiz runner for everything in the Year 3 tier. */
@@ -2122,7 +2124,8 @@ function Year3Section({ onStart, onHome, gems }) {
 
   const TABS = [
     { k:'maths', l:'🔢 Maths' }, { k:'english', l:'🔤 English' },
-    { k:'spelling', l:'✏️ Spelling' }, { k:'reading', l:'📖 Reading' }
+    { k:'spelling', l:'✏️ Spelling' }, { k:'reading', l:'📖 Reading' },
+    { k:'bfg', l:'👂 The BFG' }
   ];
 
   function tile(key, title, sub, colour) {
@@ -2175,6 +2178,18 @@ function Year3Section({ onStart, onHome, gems }) {
 
           {tab === 'reading' && Y3_READING.PASSAGES.map(p =>
             tile('y3r:' + p.id, `${p.icon} ${p.title}`, 'Read it, then eight questions', '#10b981'))}
+
+          {tab === 'bfg' && <React.Fragment>
+            <div className="card" style={{padding:14,marginBottom:4,background:'rgba(245,158,11,0.16)',border:'1px solid rgba(245,158,11,0.5)'}}>
+              <div style={{fontWeight:800,marginBottom:4}}>📕 Have the book next to you</div>
+              <div style={{fontSize:'0.85rem',lineHeight:1.5,opacity:0.9}}>
+                Read the part of <em>The BFG</em> it asks for FIRST, in the real book.
+                Then answer. You are allowed to look back at the pages, that is the whole point.
+              </div>
+            </div>
+            {Y3_BFG.STAGES.map(st =>
+              tile('y3b:' + st.id, `👂 ${st.title}`, st.readFirst, '#f59e0b'))}
+          </React.Fragment>}
         </div>
       </div>
     </div>
@@ -3382,6 +3397,11 @@ function App() {
       const set = (y3Spelling || []).find(x => x.id === id);
       if (!set) return;
       setY3({ questions: spellingQuestions(set), label: '✏️ ' + set.title });
+      setScreen('y3quiz');
+    } else if (kind === 'y3b:') {
+      const st = Y3_BFG.STAGES.find(x => x.id === id);
+      if (!st) return;
+      setY3({ questions: Y3_BFG.questionsFor(id), label: '👂 BFG: ' + st.title, teach: st.readFirst });
       setScreen('y3quiz');
     } else if (kind === 'y3r:') {
       const p = Y3_READING.PASSAGES.find(x => x.id === id);
