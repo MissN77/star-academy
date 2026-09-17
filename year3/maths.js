@@ -603,20 +603,139 @@
     );
   }
 
+  // Teaching comes BEFORE the questions. A child cannot be expected to score
+  // well on something nobody has shown her. Each card is: the rule in plain
+  // words, then a worked example she can copy the method from.
   const TOPICS = [
-    { id: 'place', name: 'Place Value to 1000', icon: '\u{1F522}', gen: placeValue },
-    { id: 'counting', name: 'Counting in 4s, 8s, 50s, 100s', icon: '\u{1F3AF}', gen: counting },
-    { id: 'add', name: 'Column Addition', icon: '➕', gen: columnAdd },
-    { id: 'sub', name: 'Column Subtraction', icon: '➖', gen: columnSub },
-    { id: 'mental', name: 'In Your Head', icon: '\u{1F9E0}', gen: mental },
-    { id: 'tables', name: '3, 4 and 8 Times Tables', icon: '✖️', gen: tables },
-    { id: 'twobyone', name: 'Two Digits × One Digit', icon: '\u{1F9EE}', gen: twoByOne },
-    { id: 'fractions', name: 'Fractions and Tenths', icon: '\u{1F355}', gen: fractions },
-    { id: 'measure', name: 'Measuring', icon: '\u{1F4CF}', gen: measure },
-    { id: 'money', name: 'Money', icon: '\u{1F4B7}', gen: moneyQ },
-    { id: 'time', name: 'Telling the Time', icon: '⏰', gen: timeQ },
-    { id: 'shape', name: 'Angles and Shape', icon: '\u{1F4D0}', gen: shapeQ },
-    { id: 'data', name: 'Charts and Tables', icon: '\u{1F4CA}', gen: dataQ }
+    { id: 'place', name: 'Place Value to 1000', icon: '\u{1F522}', gen: placeValue,
+      rule: 'Every digit is worth something different depending on where it sits. Reading from the right: ones, tens, hundreds.',
+      points: [
+        'In 472 the 4 means 400, the 7 means 70 and the 2 means 2.',
+        'A zero is a placeholder. It keeps the other digits in the right column, so 205 is not the same as 25.',
+        'To find 10 more, only the tens digit changes. To find 100 more, only the hundreds digit changes.',
+        'To round to the nearest 10, look at the ones digit. 5 or more rounds up, less than 5 rounds down.'
+      ],
+      example: { q: 'What is the value of the 6 in 364?', steps: ['Start at the right: 4 is ones, 6 is tens, 3 is hundreds.', 'The 6 is in the tens column.', '6 tens is 60.'], a: '60' } },
+
+    { id: 'counting', name: 'Counting in 4s, 8s, 50s, 100s', icon: '\u{1F3AF}', gen: counting,
+      rule: 'A sequence follows a rule. Find what is added or taken away each time, then keep doing it.',
+      points: [
+        'Work out the gap between the first two numbers, then check it is the same gap all the way along.',
+        'Counting in 8s is just counting in 4s twice: 4, 8, 12, 16 becomes 8, 16, 24, 32.',
+        'A sequence can start anywhere. 3, 7, 11, 15 goes up in 4s even though none of them are in the 4 times table.',
+        'Going backwards, you take the gap away each time.'
+      ],
+      example: { q: 'Count on in 50s: 130, 180, 230, 280, ___', steps: ['180 − 130 = 50, so the rule is add 50.', 'Check the next gap: 230 − 180 = 50. Same rule.', '280 + 50 = 330.'], a: '330' } },
+
+    { id: 'add', name: 'Column Addition', icon: '➕', gen: columnAdd,
+      rule: 'Line the numbers up in their columns and add the ones first, then the tens, then the hundreds.',
+      points: [
+        'Ones under ones, tens under tens, hundreds under hundreds. Never line them up on the left.',
+        'If a column comes to 10 or more, write the ones digit and carry the ten into the next column.',
+        'The carried digit gets added on at the top of the next column. Do not forget it.',
+        'Estimate first: 276 + 348 is roughly 280 + 350, so about 630. If your answer is nowhere near, check it.'
+      ],
+      example: { q: '276 + 348', steps: ['Ones: 6 + 8 = 14. Write 4, carry 1.', 'Tens: 7 + 4 = 11, plus the carried 1 = 12. Write 2, carry 1.', 'Hundreds: 2 + 3 = 5, plus the carried 1 = 6.'], a: '624' } },
+
+    { id: 'sub', name: 'Column Subtraction', icon: '➖', gen: columnSub,
+      rule: 'Line them up in columns and take away the ones first, then the tens, then the hundreds.',
+      points: [
+        'The bigger number always goes on top.',
+        'If the top digit is too small, exchange: take one from the column to its left. Ten ones for one ten, or ten tens for one hundred.',
+        'Cross out the digit you took from and write what is left above it, so you do not lose track.',
+        'Check by adding your answer back on to the number you took away. It should give you the number you started with.'
+      ],
+      example: { q: '523 − 176', steps: ['Ones: 3 is smaller than 6, so exchange a ten. 13 − 6 = 7.', 'Tens: the 2 became 1, and 1 is smaller than 7, so exchange a hundred. 11 − 7 = 4.', 'Hundreds: the 5 became 4. 4 − 1 = 3.'], a: '347' } },
+
+    { id: 'mental', name: 'In Your Head', icon: '\u{1F9E0}', gen: mental,
+      rule: 'Adding 1, 10 or 100 changes ONE digit. You do not need to write anything down.',
+      points: [
+        'Add 1 and only the ones digit changes. Add 10 and only the tens digit changes. Add 100 and only the hundreds digit changes.',
+        'Watch for the moment a column fills up: 10 more than 395 is 405, not 3105.',
+        'Adding 20 is just adding 10 twice. Adding 200 is adding 100 twice.',
+        'Say the number out loud in your head as you change it.'
+      ],
+      example: { q: '473 + 100', steps: ['Only the hundreds digit changes.', '4 hundreds becomes 5 hundreds.', 'The 7 and the 3 stay exactly as they are.'], a: '573' } },
+
+    { id: 'tables', name: '3, 4 and 8 Times Tables', icon: '✖️', gen: tables,
+      rule: 'These three tables are the Year 3 ones. Knowing them by heart makes everything else quicker.',
+      points: [
+        'The 4 times table is double the 2 times table. The 8 times table is double the 4s.',
+        'Every answer in the 3 times table has digits that add up to 3, 6 or 9. 24 gives 2 + 4 = 6.',
+        'Multiplying works in any order: 8 × 3 is the same as 3 × 8.',
+        'Every times fact is also a dividing fact. If 4 × 7 = 28, then 28 ÷ 4 = 7 and 28 ÷ 7 = 4.'
+      ],
+      example: { q: '8 × 6', steps: ['You may know 4 × 6 = 24.', '8 is double 4, so double the answer.', '24 doubled is 48.'], a: '48' } },
+
+    { id: 'twobyone', name: 'Two Digits × One Digit', icon: '\u{1F9EE}', gen: twoByOne,
+      rule: 'Split the two-digit number into tens and ones, multiply each part, then add the two answers.',
+      points: [
+        'Break 34 into 30 and 4. They are much easier to multiply separately.',
+        'Multiply the tens first, because it gives you the biggest part of the answer.',
+        'Then multiply the ones and add the two results together.',
+        'Estimate to check: 34 × 6 is roughly 30 × 6 = 180, so an answer of 204 is sensible and an answer of 84 is not.'
+      ],
+      example: { q: '34 × 6', steps: ['30 × 6 = 180.', '4 × 6 = 24.', '180 + 24 = 204.'], a: '204' } },
+
+    { id: 'fractions', name: 'Fractions and Tenths', icon: '\u{1F355}', gen: fractions,
+      rule: 'The bottom number says how many equal parts the whole is cut into. The top number says how many of those parts you have.',
+      points: [
+        'To find a fraction of an amount: divide by the BOTTOM, then multiply by the TOP.',
+        'When the bottoms match, the fraction with the bigger top is bigger. 5/8 beats 3/8.',
+        'To add fractions with the same bottom number, add the tops and leave the bottom alone.',
+        'Multiply the top and bottom by the same number and the fraction is worth exactly the same: 1/2 = 2/4 = 5/10.'
+      ],
+      example: { q: 'What is 3/5 of 40?', steps: ['Divide by the bottom: 40 ÷ 5 = 8. That is one fifth.', 'Multiply by the top: 8 × 3 = 24.', 'So 3/5 of 40 is 24.'], a: '24' } },
+
+    { id: 'measure', name: 'Measuring', icon: '\u{1F4CF}', gen: measure,
+      rule: 'Before you compare or add measurements, change them into the SAME unit.',
+      points: [
+        '10 millimetres make 1 centimetre. 100 centimetres make 1 metre. 1000 metres make 1 kilometre.',
+        '1000 grams make 1 kilogram. 1000 millilitres make 1 litre.',
+        'To go to the smaller unit you multiply. To go to the bigger unit you divide.',
+        'Perimeter is the distance all the way round the edge. Add every side.'
+      ],
+      example: { q: '3 m and 45 cm is how many centimetres?', steps: ['1 metre is 100 cm, so 3 metres is 3 × 100 = 300 cm.', 'Now add the extra 45 cm.', '300 + 45 = 345 cm.'], a: '345 cm' } },
+
+    { id: 'money', name: 'Money', icon: '\u{1F4B7}', gen: moneyQ,
+      rule: 'Turn everything into pence, do the sum, then turn the answer back into pounds.',
+      points: [
+        '£1 is 100p. So £3.45 is 345p.',
+        'Put both amounts in the same form before you add or subtract. Never mix pounds and pence in one sum.',
+        'To find change, take the cost away from what you paid.',
+        'When you write the answer in pounds, there are always TWO digits after the dot: £4.50, not £4.5.'
+      ],
+      example: { q: 'You pay with £5 for something costing £1.36. What is the change?', steps: ['£5 is 500p and £1.36 is 136p.', '500 − 136 = 364p.', '364p is £3.64.'], a: '£3.64' } },
+
+    { id: 'time', name: 'Telling the Time', icon: '⏰', gen: timeQ,
+      rule: 'Past the hour for the first half, to the NEXT hour for the second half.',
+      points: [
+        'Up to 30 minutes you say "past" and use the hour you have just had. After 30 you say "to" and use the hour coming next.',
+        '15 minutes is a quarter, 30 minutes is a half, 45 minutes is a quarter to the next hour.',
+        'For a duration, count on to the next o\'clock first, then count the rest.',
+        'On a 24-hour clock, anything from 13:00 onwards means take 12 away: 19:30 is half past 7 in the evening.'
+      ],
+      example: { q: 'A film starts at 2:40 and lasts 35 minutes. When does it end?', steps: ['From 2:40, count on 20 minutes to reach 3:00.', 'You have used 20 of the 35, so 15 minutes are left.', '15 minutes past 3 is 3:15.'], a: '3:15' } },
+
+    { id: 'shape', name: 'Angles and Shape', icon: '\u{1F4D0}', gen: shapeQ,
+      rule: 'A right angle is a square corner. It is a quarter of a full turn.',
+      points: [
+        'One right angle is a quarter turn. Two is a half turn. Four right angles make a full turn all the way round.',
+        'An angle smaller than a right angle is acute. Bigger than a right angle is obtuse.',
+        'Parallel lines stay the same distance apart and never meet. Perpendicular lines cross at a right angle.',
+        'For 3D shapes: faces are the flat surfaces, edges are where two faces meet, vertices are the corners.'
+      ],
+      example: { q: 'You face north and make 2 quarter turns clockwise. Which way are you facing?', steps: ['Clockwise from north goes north, east, south, west.', 'One quarter turn takes you to east.', 'A second quarter turn takes you to south.'], a: 'South' } },
+
+    { id: 'data', name: 'Charts and Tables', icon: '\u{1F4CA}', gen: dataQ,
+      rule: 'Read the labels and the key BEFORE you look at the numbers.',
+      points: [
+        'On a bar chart, check what each line on the side is worth. It is not always 1.',
+        'On a pictogram, the key tells you what one symbol stands for. Half a symbol is half of that.',
+        '"How many altogether" means add them all up. "How many more" means find the difference.',
+        'Answer the question that was asked. It is easy to find the biggest bar when it asked you for the smallest.'
+      ],
+      example: { q: 'On a pictogram each star stands for 5 books. How many books do 6 stars mean?', steps: ['Check the key first: one star is 5 books.', 'There are 6 stars.', '6 × 5 = 30 books.'], a: '30 books' } }
   ];
 
   /** A set of `n` questions from one topic, with no repeated question text. */

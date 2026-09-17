@@ -38,3 +38,25 @@ if (problems.length) {
   process.exit(1);
 }
 console.log('\nAll generators pass: 4 different options, one correct, an explanation, no NaN.');
+
+// ── The worked examples on the teach cards are checked too ─────────────────
+const bad = [];
+for (const t of TOPICS) {
+  const ex = t.example;
+  if (!ex) { bad.push(t.id + ': no worked example'); continue; }
+  if (!ex.q || !ex.a || !Array.isArray(ex.steps) || ex.steps.length < 2) bad.push(t.id + ': thin example');
+  if (!t.rule || !Array.isArray(t.points) || t.points.length < 3) bad.push(t.id + ': thin teaching');
+  // re-derive the ones that are pure arithmetic
+  let m;
+  if ((m = ex.q.match(/^(\d+) \+ (\d+)$/))) {
+    if (String(+m[1] + +m[2]) !== ex.a) bad.push(t.id + ': example answer ' + ex.a + ' should be ' + (+m[1] + +m[2]));
+  }
+  if ((m = ex.q.replace(/−/g, '-').match(/^(\d+) - (\d+)$/))) {
+    if (String(+m[1] - +m[2]) !== ex.a) bad.push(t.id + ': example answer ' + ex.a + ' should be ' + (+m[1] - +m[2]));
+  }
+  if ((m = ex.q.match(/^(\d+) × (\d+)$/))) {
+    if (String(+m[1] * +m[2]) !== ex.a) bad.push(t.id + ': example answer ' + ex.a + ' should be ' + (+m[1] * +m[2]));
+  }
+}
+if (bad.length) { console.log('\nTEACH CARD PROBLEMS:'); bad.forEach(b => console.log(' -', b)); process.exit(1); }
+console.log('All 13 teach cards have a rule, 4 points and a checked worked example.');

@@ -2112,6 +2112,71 @@ function Y3Quiz({ questions, label, teach, passage, onDone, onHome, gems }) {
   );
 }
 
+
+/** Step 1 of 2: teach it, THEN test it. A child cannot be expected to score
+ *  well on something nobody has shown her. */
+function Y3Teach({ topic, wordList, onReady, onHome, gems }) {
+  const isSpelling = !!wordList;
+  return (
+    <div>
+      <Header gems={gems} onHome={onHome} title={isSpelling ? 'Learn the words' : topic.name}/>
+      <div className="slide-in" style={{padding:'0 20px 40px',maxWidth:560,margin:'0 auto'}}>
+        <div style={{fontSize:'0.78rem',fontWeight:800,letterSpacing:'0.04em',color:'#a78bfa',marginBottom:8}}>
+          STEP 1 OF 2 · LEARN IT
+        </div>
+
+        {isSpelling ? (
+          <React.Fragment>
+            <div className="card" style={{padding:18,marginBottom:14}}>
+              <div style={{fontSize:'1.1rem',fontWeight:800,marginBottom:10}}>Look, cover, write, check</div>
+              <div style={{fontSize:'0.9rem',opacity:0.85,marginBottom:14,lineHeight:1.5}}>
+                Read each word. Say it out loud in parts. Look at the tricky bit,
+                the letters you would not guess from the sound.
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                {wordList.map(w => (
+                  <div key={w.word} style={{background:'rgba(255,255,255,0.08)',borderRadius:10,padding:'10px 12px',fontSize:'1.05rem',fontWeight:700}}>
+                    {w.word}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <div className="card" style={{padding:18,marginBottom:14}}>
+              <div style={{fontSize:'1.15rem',fontWeight:800,marginBottom:8}}>{topic.icon} {topic.name}</div>
+              <div style={{fontSize:'1rem',lineHeight:1.55,marginBottom:14}}>{topic.rule}</div>
+              <ul style={{margin:0,paddingLeft:20,display:'flex',flexDirection:'column',gap:8}}>
+                {topic.points.map((pt, i) => (
+                  <li key={i} style={{fontSize:'0.92rem',lineHeight:1.5,opacity:0.92}}>{pt}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card" style={{padding:18,marginBottom:14,background:'rgba(16,185,129,0.14)',border:'1px solid rgba(16,185,129,0.45)'}}>
+              <div style={{fontSize:'0.78rem',fontWeight:800,color:'#6ee7b7',marginBottom:8}}>WORKED EXAMPLE</div>
+              <div style={{fontSize:'1.05rem',fontWeight:700,marginBottom:10}}>{topic.example.q}</div>
+              <ol style={{margin:0,paddingLeft:20,display:'flex',flexDirection:'column',gap:6}}>
+                {topic.example.steps.map((st, i) => (
+                  <li key={i} style={{fontSize:'0.92rem',lineHeight:1.5}}>{st}</li>
+                ))}
+              </ol>
+              <div style={{marginTop:12,fontSize:'1.1rem',fontWeight:800,color:'#6ee7b7'}}>
+                Answer: {topic.example.a}
+              </div>
+            </div>
+          </React.Fragment>
+        )}
+
+        <div style={{textAlign:'center'}}>
+          <button className="btn-primary" onClick={onReady}>Ready! Start the questions →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** The Year 3 menu: morning ten, maths, English, spelling and reading. */
 function Year3Section({ onStart, onHome, gems }) {
   const [tab, setTab] = React.useState('maths');
@@ -3387,8 +3452,10 @@ function App() {
     const [kind, id] = [key.slice(0, 4), key.slice(4)];
     if (kind === 'y3m:') {
       const t = Y3_MATHS.TOPICS.find(x => x.id === id);
-      setY3({ questions: Y3_MATHS.makeSet(id, 10), label: '🔢 ' + (t ? t.name : 'Maths') });
-      setScreen('y3quiz');
+      if (!t) return;
+      // Teach it first, then test it.
+      setY3({ topic: t, questions: Y3_MATHS.makeSet(id, 10), label: '🔢 ' + t.name });
+      setScreen('y3teach');
     } else if (kind === 'y3e:') {
       const set = Y3_ENGLISH.SETS.find(x => x.id === id);
       setY3({ questions: Y3_ENGLISH.makeSet(id, 12), label: '🔤 ' + (set ? set.title : 'English'), teach: set && set.teach });
@@ -3396,8 +3463,9 @@ function App() {
     } else if (kind === 'y3s:') {
       const set = (y3Spelling || []).find(x => x.id === id);
       if (!set) return;
-      setY3({ questions: spellingQuestions(set), label: '✏️ ' + set.title });
-      setScreen('y3quiz');
+      // Show her the ten words before testing her on them.
+      setY3({ wordList: set.words, questions: spellingQuestions(set), label: '✏️ ' + set.title });
+      setScreen('y3teach');
     } else if (kind === 'y3b:') {
       const st = Y3_BFG.STAGES.find(x => x.id === id);
       if (!st) return;
@@ -3593,6 +3661,9 @@ function App() {
 
       {/* Maths */}
       {screen === 'year3' && <Year3Section gems={gems} onHome={goHome} onStart={startY3}/>}
+      {screen === 'y3teach' && y3 && (y3.topic || y3.wordList) && <Y3Teach gems={gems} onHome={goHome}
+        topic={y3.topic} wordList={y3.wordList}
+        onReady={() => setScreen('y3quiz')}/>}
       {screen === 'y3read' && y3 && y3.passageObj && <Y3Reader gems={gems} onHome={goHome}
         passage={y3.passageObj}
         onReady={() => {
