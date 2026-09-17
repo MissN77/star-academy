@@ -1,0 +1,26 @@
+#!/bin/sh
+# Blocks a push if any answer bank has a fault.
+#
+# Six mis-keyed answers in the other app once told a child he was wrong when he
+# was right, for months, because nothing checked. This is the gate that means
+# it cannot ship again without someone seeing it.
+#
+# Installed to .git/hooks/pre-push by tools/install-hooks.sh
+# To override in a genuine emergency: git push --no-verify
+
+REPO="$(git rev-parse --show-toplevel)"
+echo "→ auditing answer banks before push…"
+if ! node "$REPO/tools/audit-banks.js"; then
+  echo ""
+  echo "PUSH BLOCKED. An answer bank has a fault. Fix it, or push with --no-verify"
+  echo "if you genuinely mean to ship it."
+  exit 1
+fi
+echo "→ banks pass. Running the Year 3 maths generators…"
+if ! node "$REPO/year3/test-maths.js" > /dev/null; then
+  echo "PUSH BLOCKED. A Year 3 maths generator failed. Run:"
+  echo "    node year3/test-maths.js"
+  exit 1
+fi
+echo "→ generators pass."
+exit 0

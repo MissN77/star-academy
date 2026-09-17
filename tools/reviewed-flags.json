@@ -1,0 +1,11 @@
+{
+  "note": "Flagged items a HUMAN HAS READ and confirmed are correctly keyed. Anything flagged and not on this list fails the audit and blocks the push. Never add a fingerprint without reading the question itself.",
+  "reviewedOn": "2026-09-17",
+  "reviewed": [
+    "Y3_ENGLISH_SETS[5].qs[5]|Start a new line",
+    "Y3_ENGLISH_SETS[6].qs[5]|I have three cats.",
+    "Y3_READING[3].qs[7]|Given as a gift",
+    "Y3_BFG[6].qs[7]|this book",
+    "Y3_BFG[7].qs[7]|Read it out loud"
+  ]
+}

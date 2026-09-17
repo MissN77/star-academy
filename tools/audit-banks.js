@@ -130,6 +130,20 @@ function answerText(q) {
   return [null, null];
 }
 
+// ── The answer lock ────────────────────────────────────────────────────────
+// Heuristics only catch a SIGNATURE. A planted mis-key on short options slipped
+// straight through, so they are not enough on their own.
+// The lock records the exact answer TEXT of every question at a moment when the
+// banks were verified. If an edit later moves an answer index without changing
+// the text, the answer has silently flipped, and that is a hard fault.
+// To accept a deliberate change:  node tools/audit-banks.js --relock
+const LOCK_PATH = path.join(__dirname, 'answer-lock.json');
+const RELOCK = process.argv.includes('--relock');
+let lock = {};
+try { lock = JSON.parse(fs.readFileSync(LOCK_PATH, 'utf8')).answers || {}; }
+catch (e) { /* no lock yet */ }
+const newLock = {};
+
 const faults = [];
 const toRead = [];
 let checked = 0;
@@ -156,6 +170,21 @@ for (const [bankName, data] of Object.entries(banks)) {
     if (new Set(opts.map((o) => o.trim())).size !== opts.length) {
       faults.push(`${p}: duplicate options -> ${JSON.stringify(opts)}`);
     }
+    // Lock by the QUESTION TEXT, not by its position. One bank shuffles itself
+    // at load (ENGLISH_LESSONS takes a random 10 from SENTENCE_FILL), so a
+    // position-based key reported false changes on every run. A question keyed
+    // by its own words maps to the same answer however it is shuffled.
+    // stem AND options, because some banks reuse a short stem ("What happened
+    // on Tuesday?") across different questions, and a stem-only key collided.
+    const lockKey = bankName + ' :: ' + String(stem).slice(0, 110)
+      + ' :: ' + [...opts].sort().join('~').slice(0, 160);
+    newLock[lockKey] = opts[idx];
+    if (!RELOCK && Object.prototype.hasOwnProperty.call(lock, lockKey)
+        && lock[lockKey] !== opts[idx]) {
+      faults.push(`${p}: ANSWER CHANGED. was "${String(lock[lockKey]).slice(0, 45)}" `
+        + `and is now "${opts[idx].slice(0, 45)}". If that is deliberate, re-run with --relock.`);
+    }
+
     const why = q.why || q.explanation || q.workingOut || q.e || '';
     if (!String(why).trim()) faults.push(`${p}: no explanation${stem ? ' :: ' + stem.slice(0, 60) : ''}`);
 
@@ -195,6 +224,16 @@ for (const [bankName, data] of Object.entries(banks)) {
   if (n) perBank[bankName] = n;
 }
 
+if (RELOCK) {
+  fs.writeFileSync(LOCK_PATH, JSON.stringify({
+    note: 'The verified answer TEXT of every question. The audit fails if an answer '
+      + 'silently changes. Re-lock only when you MEANT to change an answer.',
+    lockedOn: new Date().toISOString().slice(0, 10),
+    answers: newLock
+  }, null, 1) + '\n');
+  console.log(`RE-LOCKED ${Object.keys(newLock).length} answers into ${LOCK_PATH}\n`);
+}
+
 console.log('questions checked per bank:');
 for (const [k, v] of Object.entries(perBank).sort((a, b) => b[1] - a[1])) {
   console.log('  ' + k.padEnd(24) + String(v).padStart(5));
@@ -216,7 +255,21 @@ console.log(`\nFAULTS: ${faults.length}`);
 faults.slice(0, 50).forEach((f) => console.log('   -', f));
 if (faults.length > 50) console.log(`   … and ${faults.length - 50} more`);
 
-console.log(`\nNEEDS A HUMAN TO READ (mis-key signature): ${toRead.length}`);
+// ── The ratchet ────────────────────────────────────────────────────────────
+// A semantic mis-key cannot be proven by a machine, so a flag list on its own
+// lets a planted fault through. Every flagged item must be signed off ONCE in
+// tools/reviewed-flags.json. Anything flagged and not on that list FAILS, so a
+// new mis-key blocks the push until a human has read it.
+const REVIEWED_PATH = path.join(__dirname, 'reviewed-flags.json');
+let reviewed = new Set();
+try {
+  reviewed = new Set(JSON.parse(fs.readFileSync(REVIEWED_PATH, 'utf8')).reviewed);
+} catch (e) { /* no sign-off file yet, so everything flagged is unreviewed */ }
+
+const fingerprint = (s) => `${s.p}|${s.keyed.slice(0, 40)}`;
+const unreviewed = toRead.filter((s) => !reviewed.has(fingerprint(s)));
+
+console.log(`\nNEEDS A HUMAN TO READ (mis-key signature): ${toRead.length}, of which NOT YET SIGNED OFF: ${unreviewed.length}`);
 toRead.slice(0, 40).forEach((s) => {
   console.log(`   ${s.p}`);
   console.log(`      Q     : ${s.stem}`);
@@ -224,6 +277,21 @@ toRead.slice(0, 40).forEach((s) => {
   console.log(`      longer: ${s.longer}`);
 });
 if (toRead.length > 40) console.log(`   … and ${toRead.length - 40} more`);
+
+if (unreviewed.length) {
+  console.log('\nFAILED. These are flagged and have never been signed off:');
+  unreviewed.forEach((s) => {
+    console.log(`   ${s.p}`);
+    console.log(`      Q     : ${s.stem}`);
+    console.log(`      keyed : ${s.keyed}`);
+    console.log(`      other : ${s.longer}`);
+  });
+  console.log('\nRead each one. If the key is RIGHT add its fingerprint to');
+  console.log('   ' + REVIEWED_PATH);
+  console.log('If the key is WRONG, fix the bank. Fingerprints to add:');
+  unreviewed.forEach((s) => console.log(`   "${fingerprint(s)}"`));
+  process.exit(1);
+}
 
 if (faults.length) {
   console.log('\nFAILED. Fix these before shipping.');
